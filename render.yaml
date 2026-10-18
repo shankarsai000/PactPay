@@ -1,0 +1,63 @@
+# Render Multi-Service Blueprint for PactPay
+# Architectural Separation of Powers:
+# 1. pactpay-frontend: Public Next.js 16 Web Application
+# 2. pactpay-orchestrator: Public FastAPI Orchestrator (holds zero PayPal credentials)
+# 3. pactpay-executor: Render Private Service (pserv, accessible only via internal network, holds PayPal execution keys)
+
+services:
+  # --- Public Frontend ---
+  - type: web
+    name: pactpay-frontend
+    env: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: pactpay-orchestrator
+          property: host
+
+  # --- Public Agent Orchestrator ---
+  - type: web
+    name: pactpay-orchestrator
+    env: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: PACTPAY_CLEARANCE_SECRET
+        generateValue: true
+      - key: EXECUTOR_SERVICE_URL
+        fromService:
+          type: pserv
+          name: pactpay-executor
+          property: host
+
+  # --- Private Air-Gapped Settlement Executor ---
+  - type: pserv
+    name: pactpay-executor
+    env: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_BASE_URL
+        value: https://api-m.sandbox.paypal.com
+      - key: PAYPAL_RETURN_URL
+        fromService:
+          type: web
+          name: pactpay-frontend
+          property: host
