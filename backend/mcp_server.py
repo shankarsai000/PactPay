@@ -50,9 +50,9 @@ from services.paypal_mcp_gate import CryptographicPayPalGate
 # FastMCP Initialization with Native SDK or Zero-Dependency Stdio Fallback
 # ---------------------------------------------------------------------------
 try:
-    from mcp.server.fastmcp import FastMCP
+    from mcp.server.fastmcp import FastMCP  # type: ignore # pyright: ignore[reportMissingImports]
     HAS_FASTMCP = True
-except ImportError:
+except (ImportError, Exception):
     HAS_FASTMCP = False
 
     class FastMCP:  # type: ignore[no-redef]
