@@ -30,7 +30,7 @@ class Configuration:
         if self.environment == "production":
             self.base_url = "https://api-m.paypal.com"
         else:
-            self.base_url = os.getenv("PAYPAL_BASE_URL", "https://api-m.sandbox.paypal.com").rstrip("/")
+            self.base_url = (os.getenv("PAYPAL_BASE_URL") or os.getenv("PAYPAL_API_BASE") or "https://api-m.sandbox.paypal.com").rstrip("/")
 
     @property
     def has_credentials(self) -> bool:
