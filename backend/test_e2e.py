@@ -105,6 +105,57 @@ def test_pactpay_end_to_end():
     assert cap["tracking_number"] is not None
     log(f"[PASS] PayPal Capture & Tracking OK - Status: {cap['status']}, Tracking: {cap['tracking_number']}")
 
+    # 9. PayPal Reporting & 7-Domain Toolkit Telemetry
+    res = client.get("/api/paypal/reporting/insights")
+    assert res.status_code == 200
+    insights = res.json()
+    assert insights["active_domains_count"] == 7
+    assert len(insights["domains_coverage"]) == 7
+    assert insights["mcp_tools_count"] >= 18
+    log(f"[PASS] PayPal 7-Domain Toolkit Insights OK - Domains: {insights['active_domains_count']}, Tools: {insights['mcp_tools_count']}")
+
+    # 10. PayPal Recurring B2B Subscription
+    res = client.post("/api/paypal/subscriptions/create", json={
+        "plan_name": "PactPay Enterprise Server Maintenance",
+        "monthly_amount": 499.00,
+        "canonical_payload": '{"subscription_tier": "ENTERPRISE", "monthly_amount": 499.00}',
+        "clearance_token": "hmac_sha256_z3_verified_token_8a92",
+    })
+    assert res.status_code == 200
+    sub_data = res.json()
+    assert sub_data["status"] in ("APPROVAL_PENDING", "ACTIVE")
+    assert sub_data["subscriber_approve_url"] is not None
+    log(f"[PASS] PayPal Recurring B2B Subscription OK - ID: {sub_data['subscription_id']}, Status: {sub_data['status']}")
+
+    # 11A. PayPal Dispute Defense (Compliant Delivery)
+    res = client.post("/api/paypal/disputes/evaluate", json={
+        "dispute_id": "PP-D-94821",
+        "order_id": order_id,
+        "canonical_payload": '{"quantity": 10}',
+        "clearance_token": "hmac_sha256_z3_verified_token_8a92",
+        "delivered_qty": 10,
+    })
+    assert res.status_code == 200
+    disp_def = res.json()
+    assert disp_def["z3_verdict"] == "FULFILLMENT_SATISFIED"
+    assert disp_def["resolution_action"] == "AUTO_DEFENDED_WITH_EVIDENCE"
+    log(f"[PASS] PayPal Dispute Auto-Defense OK - Verdict: {disp_def['z3_verdict']}, Action: {disp_def['resolution_action']}")
+
+    # 11B. PayPal Dispute Breach Brief (Short Shipment Discrepancy)
+    res = client.post("/api/paypal/disputes/evaluate", json={
+        "dispute_id": "PP-D-94822",
+        "order_id": order_id,
+        "canonical_payload": '{"quantity": 10}',
+        "clearance_token": "hmac_sha256_z3_verified_token_8a92",
+        "delivered_qty": 7,  # Short by 3 units!
+    })
+    assert res.status_code == 200
+    disp_brk = res.json()
+    assert disp_brk["z3_verdict"] == "BREACH_CONFIRMED"
+    assert disp_brk["resolution_action"] == "ACCEPT_CLAIM_CONCEDE"
+    assert disp_brk["breach_brief"]["shortfall_units"] == 3
+    log(f"[PASS] PayPal Dispute Z3 Breach Brief OK - Shortfall: {disp_brk['breach_brief']['shortfall_units']} units, Action: {disp_brk['resolution_action']}")
+
     log("=" * 72)
     log("  ALL END-TO-END TESTS PASSED WITH 100% SUCCESS!")
     log("=" * 72)

@@ -70,6 +70,21 @@ class CaptureOrderRequest(BaseModel):
     order_id: str
 
 
+class DisputeEvaluateRequest(BaseModel):
+    dispute_id: str = Field(default="PP-D-94821")
+    order_id: str = Field(default="02136085R83568202")
+    canonical_payload: str = Field(default='{"quantity": 10, "unit_monitor_cents": 39685, "unit_cable_cents": 2562}')
+    clearance_token: str = Field(default="hmac_sha256_z3_verified_token_8a92")
+    delivered_qty: int = Field(default=10, ge=0)
+
+
+class SubscriptionCreateRequest(BaseModel):
+    plan_name: str = Field(default="PactPay Autonomous Compute Maintenance")
+    monthly_amount: float = Field(default=499.00, gt=0.0)
+    canonical_payload: str = Field(default='{"subscription_tier": "ENTERPRISE_MAINTENANCE", "monthly_amount": 499.00}')
+    clearance_token: str = Field(default="hmac_sha256_z3_verified_token_8a92")
+
+
 class BreakItRequest(BaseModel):
     custom_prompt: str = Field(..., description="Malicious merchant quote or override prompt to test")
     unit_monitor_dollars: float = Field(default=396.85)
@@ -212,6 +227,48 @@ async def capture_paypal_order(req: CaptureOrderRequest):
         return result
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/paypal/disputes/evaluate")
+async def evaluate_paypal_dispute(req: DisputeEvaluateRequest):
+    """Auto-defends or resolves dispute based on immutable Z3 quantity & clearance verification."""
+    try:
+        return await orchestrator.paypal_gate.auto_defend_or_resolve_dispute(
+            dispute_id=req.dispute_id,
+            order_id=req.order_id,
+            canonical_payload=req.canonical_payload,
+            clearance_token=req.clearance_token,
+            delivered_qty=req.delivered_qty,
+        )
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/paypal/subscriptions/create")
+async def create_paypal_subscription(req: SubscriptionCreateRequest):
+    """Creates a recurring B2B billing subscription verified by Z3 clearance."""
+    try:
+        return await orchestrator.paypal_gate.create_recurring_b2b_subscription(
+            plan_name=req.plan_name,
+            monthly_amount=req.monthly_amount,
+            canonical_payload=req.canonical_payload,
+            clearance_token=req.clearance_token,
+        )
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/paypal/reporting/insights")
+async def get_paypal_reporting_insights():
+    """Provides executive CFO reporting telemetry across all 7 PayPal Agent Toolkit domains."""
+    try:
+        return await orchestrator.paypal_gate.get_cfo_reporting_insights()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 @app.post("/api/break-it")
