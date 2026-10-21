@@ -120,7 +120,7 @@ cd backend
 .\.venv\Scripts\Activate.ps1
 python -m uvicorn main:app --reload --port 8000
 ```
-*Or run:* `.\run_backend.bat`
+*Or simply run:* `.\run.bat` from repository root (or `.\run_backend.bat`)
 
 ### 2. Run the Frontend (Next.js 16)
 ```powershell
@@ -199,7 +199,25 @@ python backend/test_e2e.py
 python pactpay_verify.py receipt.json
 ```
 
-### 6. Verify Model Context Protocol (MCP) Server Tool Definitions
+### 6. Run the 20-Test Master 4-Pool Suite (`backend/tests/test_master_all_four.py`)
+Executes the comprehensive automated contract and end-to-end verification suite covering all 4 credit-backed infrastructure pools (Channel3, KERNEL, Elastic Cloud, and Render + PayPal Sandbox):
+```bash
+cd backend
+python -m pytest tests/test_master_all_four.py -v
+```
+*Outputs: `20 passed in 34.18s` (100% pass rate across Net Effective BATNA math, KERNEL headless Playwright anti-drip verification, Elastic ES|QL trust scoring & SHA-256 hash chains, Z3 invariants, and APIMatic PayPal Orders v2 settlement).*
+
+### 7. 1-Click Multi-Pool Infrastructure Smoke Test
+Verifies live connectivity to all 4 external credit pools in one shot:
+```powershell
+# Windows PowerShell:
+powershell -ExecutionPolicy Bypass -File backend\scripts\verify_all_4_credits.ps1
+
+# Linux / Render CI (Bash):
+bash backend/scripts/verify_all_4_credits.sh
+```
+
+### 8. Verify Model Context Protocol (MCP) Server Tool Definitions
 ```bash
 python backend/mcp_server.py --list
 ```

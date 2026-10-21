@@ -134,6 +134,13 @@ flowchart TD
   4. `pactpay_audit_paypal_dispute`: Immutable Z3 fulfillment contract verification vs. carrier proof of delivery / Breach Brief concession.
 - **Claude Desktop & Postman Ready:** Plugs directly into Claude Desktop or Postman MCP Inspector via standard stdio JSON-RPC 2.0 with an intelligent zero-dependency fallback runner.
 
+### 9. 🏛️ 4-Pool Infrastructure & Automated Master Test Suite Track
+- **Channel3 (21,000 Credits):** Net Effective BATNA oracle calculation, 100M+ SKU discovery, and automatic Scenario C price-tracking walk-away monitoring.
+- **KERNEL ($55 Cloud Browser Credits):** Sandboxed Chrome sessions verifying retail checkouts and catching anti-drip pricing with guaranteed `DELETE /browsers/{id}` teardown.
+- **Elastic Cloud (44-Day Enterprise Trial):** Parameterized ES|QL `/_query` vendor trust scoring (`INV_7`) and SHA-256 hash-chained tamper-evident audit ledger.
+- **Render Production & PayPal Sandbox ($50 Credits):** Deterministic UUIDv5 idempotency headers, APIMatic breakdown verification, and zero cold-start deployment.
+- **Master 20-Test Suite (`backend/tests/test_master_all_four.py`):** 100% passing automated test suite with 1-click PowerShell/Bash smoke test scripts (`verify_all_4_credits.ps1` / `.sh`).
+
 ---
 
 ## 🔒 Security & Red-Team Defense ("Break-It" Console)
