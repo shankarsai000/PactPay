@@ -125,6 +125,15 @@ flowchart TD
 ### 7. ☁️ Render Track
 - **Multi-Service Architecture (`render.yaml`):** Production-ready declarative infrastructure specification with an air-gapped private backend executor and public Next.js frontend web service.
 
+### 8. 🔌 Model Context Protocol (MCP) Server Track (`backend/mcp_server.py`)
+- **Native FastMCP Server:** Exposes PactPay's entire Neuro-Symbolic procurement and PayPal settlement pipeline as an enterprise MCP server (`FastMCP("PactPay-NeuroSymbolic-Procurement-Server")`).
+- **4 Strongly-Typed MCP Tools:**
+  1. `pactpay_discover_channel3_batna`: Real-time retail spread & Net Effective Retail BATNA discovery.
+  2. `pactpay_verify_deal_z3`: Telemetry prompt sanitization + Microsoft Z3 SMT constraint evaluation (7 formal invariants) with cryptographic clearance token generation.
+  3. `pactpay_execute_swarm_procurement`: Full 5-stage swarm reverse e-auction orchestration & PayPal Orders v2 Sandbox settlement.
+  4. `pactpay_audit_paypal_dispute`: Immutable Z3 fulfillment contract verification vs. carrier proof of delivery / Breach Brief concession.
+- **Claude Desktop & Postman Ready:** Plugs directly into Claude Desktop or Postman MCP Inspector via standard stdio JSON-RPC 2.0 with an intelligent zero-dependency fallback runner.
+
 ---
 
 ## 🔒 Security & Red-Team Defense ("Break-It" Console)
@@ -202,6 +211,18 @@ python backend/eval_harness.py
 
 # Run Standalone Zero-Dependency Cryptographic Verifier
 python pactpay_verify.py --test-vectors
+```
+
+### 5. Run Model Context Protocol (MCP) Server
+```bash
+# Direct stdio server execution for Claude Desktop / Agent tools
+python backend/mcp_server.py
+
+# List registered MCP tools and capabilities
+python backend/mcp_server.py --list
+
+# Inspect with Postman or MCP Inspector
+npx @modelcontextprotocol/inspector python backend/mcp_server.py
 ```
 
 ---

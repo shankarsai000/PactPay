@@ -92,6 +92,21 @@ class Channel3BatnaService:
         snapshot["snapshot_hash"] = hash_payload(snapshot)
         return snapshot
 
+    def discover_and_anchor_batna(
+        self,
+        *,
+        query: str,
+        destination_zip: str = "78701",
+        quantity: int = 10,
+    ) -> Dict[str, Any]:
+        """Discovers multi-merchant retail offer spread and Net Effective Retail BATNA ceiling."""
+        return self.search_unbundled_batna(
+            query=query,
+            destination_zip=destination_zip,
+            quantity_monitors=quantity,
+            quantity_cables=quantity,
+        )
+
     def check_price_freshness(self, canonical_product_id: str) -> Dict[str, Any]:
         """Channel3 /v0 product price check ensuring snapshot has not moved prior to capture."""
         return {
