@@ -6,6 +6,7 @@ import type { ColDef, GridReadyEvent, RowClickedEvent } from "ag-grid-community"
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "ag-grid-enterprise";
+import { API_BASE_URL } from "../lib/api";
 
 export interface SwarmVendorBid {
   merchant_id: string;
@@ -180,7 +181,7 @@ const SparklineRenderer = (params: any) => {
   );
 };
 
-export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase = "http://localhost:8000" }: Props) {
+export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase = API_BASE_URL }: Props) {
   const gridRef = useRef<AgGridReact>(null);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [aiQuery, setAiQuery] = useState("");

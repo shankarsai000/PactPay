@@ -6,8 +6,9 @@ import { JudgeScenarioBar, ScenarioKey } from "../components/JudgeScenarioBar";
 import { PayPalSettlementModal } from "../components/PayPalSettlementModal";
 import { ProcurementGrid, ProcurementResult } from "../components/ProcurementGrid";
 import { ReceiptModal } from "../components/ReceiptModal";
+import { API_BASE_URL } from "../lib/api";
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const apiBase = API_BASE_URL;
 
 export default function Home() {
   const [rows, setRows] = useState<ProcurementResult[]>([]);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { API_BASE_URL } from "../lib/api";
 
 interface Settlement {
   order_id: string;
@@ -14,11 +15,11 @@ interface Settlement {
 
 interface Props {
   settlement: Settlement;
-  apiBase: string;
+  apiBase?: string;
   onClose: () => void;
 }
 
-export function PayPalSettlementModal({ settlement, apiBase, onClose }: Props) {
+export function PayPalSettlementModal({ settlement, apiBase = API_BASE_URL, onClose }: Props) {
   const [status, setStatus] = useState<string>("");
   const [trackingNumber, setTrackingNumber] = useState<string | null>(settlement.tracking_number || null);
   const [busy, setBusy] = useState(false);

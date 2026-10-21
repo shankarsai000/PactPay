@@ -28,5 +28,8 @@ class PromptSanitizer:
 
     def sanitize(self, text: str) -> SanitizationResult:
         reasons = [pattern for pattern in self._PATTERNS if re.search(pattern, text, re.IGNORECASE)]
-        cleaned = re.sub(r"\s+", " ", text).strip()
+        cleaned = text
+        for pattern in self._PATTERNS:
+            cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\s+", " ", cleaned).strip()
         return SanitizationResult(text=cleaned, blocked=bool(reasons), reasons=reasons)
