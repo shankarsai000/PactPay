@@ -9,47 +9,48 @@
 ## 🏗️ System Architecture
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│               FRONTEND: NEXT.JS 16 + AG GRID ENTERPRISE                │
-│  • 1-Click Judge Scenarios Bar (A, B, C) with Real-Time Cell Flashes   │
-│  • Live "Break-It" Box: Interactive Malicious Prompt & Slider Console  │
-│  • Master-Detail Z3 SMT Proof Drawers & Cryptographic Receipt Exporter │
-└──────────────────────────────────┬─────────────────────────────────────┘
-                                   │ SSE / REST Telemetry
-                                   ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                 BACKEND: FASTAPI (PYTHON 3.11 / 3.13)                  │
-│                                                                        │
-│  ┌──────────────────────────────┐      ┌────────────────────────────┐  │
-│  │ 1. CHANNEL3 UNBUNDLING ORACLE│─────▶│ 2. AP2-STYLE A2A AUCTION   │  │
-│  │ • POST /v1/search unbundling │      │ • Buyer Agent (CFO Mandate)│  │
-│  │ • GET /v0/products/{id} watch│ Sets │ • 3 Real Merchant Agents:  │  │
-│  │ • Landed BATNA: $4,746.90    │ BATNA│   Honest, Adversary,Stubbrn│  │
-│  └──────────────────────────────┘      └──────────────┬─────────────┘  │
-│                                                       │ Cart Mandate   │
-│                                                       ▼                │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │ 3. MICROSOFT Z3 SMT NEGOTIATION ORACLE & FIREWALL (INTEGER CENTS)│  │
-│  │ • INV_1_BUDGET_CAP: Landed <= $4,600.00 (460,000¢)               │  │
-│  │ • INV_2_BEATS_BATNA: Landed < $4,746.90 (474,690¢)               │  │
-│  │ • INV_3_FREIGHT_CAP_8PCT: Freight <= 8% of Subtotal              │  │
-│  │ • INV_4_MIN_WARRANTY: Warranty >= 12 Months                      │  │
-│  │ • INV_5_SCHEMA_VALIDATED: All economic terms typed numeric       │  │
-│  │ • INV_6A_NO_SUBSIDY: Monitor <= $445.90, Cable <= $28.79         │  │
-│  │ • Z3 Optimizer: nearest_compliant() guides multi-turn convergence│  │
-│  │ ──▶ Mints Ed25519 Clearance Certificate (RFC 8785 JCS Canonical) │  │
-│  └────────────────────────────────┬─────────────────────────────────┘  │
-│                                   │ Verified Ed25519 Certificate       │
-│                                   ▼                                    │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │ 4. AIR-GAPPED EXECUTOR & APIMATIC-MODELED PAYPAL SDK             │  │
-│  │ • Zero LLM Prompts / Zero Payment Keys on Orchestrator           │  │
-│  │ • Re-checks Channel3 price freshness before capture              │  │
-│  │ • Orders v2: Real Buyer Approval URL & UUIDv5 Idempotency        │  │
-│  │ • Invoicing v2 & Shipment Tracking: FedEx Tracking Number Gen    │  │
-│  │ • Defense-in-depth: Re-runs arithmetic invariants independently  │  │
-│  └──────────────────────────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────┐  ┌──────────────────────────────────────┐
+│  FRONTEND: NEXT.JS 16 + AG GRID      │  │  EXTERNAL AI AGENTS & MCP CLIENTS   │
+│  • 1-Click Judge Scenarios (A, B, C) │  │  • Claude Desktop, Postman, Cursor  │
+│  • Live "Break-It" Console           │  │  • FastMCP Model Context Protocol    │
+│  • Master-Detail Z3 Proof Drawers    │  │  • 4 Strongly-Typed MCP Tools        │
+└──────────────────┬───────────────────┘  └──────────────────┬───────────────────┘
+                   │ SSE / REST Telemetry                    │ JSON-RPC 2.0 Stdio
+                   ▼                                         ▼
+┌────────────────────────────────────────────────────────────────────────────────┐
+│               BACKEND: FASTAPI + MODEL CONTEXT PROTOCOL (MCP) SERVER           │
+│                                                                                │
+│  ┌──────────────────────────────┐      ┌────────────────────────────┐          │
+│  │ 1. CHANNEL3 UNBUNDLING ORACLE│─────▶│ 2. AP2-STYLE A2A AUCTION   │          │
+│  │ • POST /v1/search unbundling │      │ • Buyer Agent (CFO Mandate)│          │
+│  │ • GET /v0/products/{id} watch│ Sets │ • 3 Merchant Swarm Personas│          │
+│  │ • Landed BATNA: $4,746.90    │ BATNA│ • Elastic Vendor Trust     │          │
+│  └──────────────────────────────┘      └──────────────┬─────────────┘          │
+│                                                       │ Cart Mandate           │
+│                                                       ▼                        │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │ 3. MICROSOFT Z3 SMT NEGOTIATION ORACLE & FIREWALL (7 INVARIANTS)         │  │
+│  │ • INV_1_BUDGET_CAP: Landed <= $4,600.00 (460,000¢)                       │  │
+│  │ • INV_2_BEATS_BATNA: Landed < $4,746.90 (474,690¢)                       │  │
+│  │ • INV_3_FREIGHT_CAP_8PCT: Freight <= 8% of Subtotal                      │  │
+│  │ • INV_4_MIN_WARRANTY: Warranty >= 12 Months                              │  │
+│  │ • INV_5_SCHEMA_VALIDATED: All economic terms typed numeric               │  │
+│  │ • INV_6A_NO_SUBSIDY: Monitor <= $445.90, Cable <= $28.79                 │  │
+│  │ • INV_7_VENDOR_TRUST_MIN_75: Elastic Trust SLA >= 75/100                 │  │
+│  │ • Z3 Optimizer: nearest_compliant() guides multi-turn convergence        │  │
+│  │ ──▶ Mints Ed25519 Clearance Certificate (RFC 8785 JCS Canonical)         │  │
+│  └────────────────────────────────────┬─────────────────────────────────────┘  │
+│                                       │ Verified Ed25519 Certificate           │
+│                                       ▼                                        │
+│  ┌──────────────────────────────────────────────────────────────────────────┐  │
+│  │ 4. AIR-GAPPED EXECUTOR & 100% 7-DOMAIN PAYPAL MCP SETTLEMENT GATE        │  │
+│  │ • Catalog, Orders, Invoices, Tracking, Disputes, Subscriptions, Insights │  │
+│  │ • Orders v2: Real Buyer Approval URL & UUIDv5 Idempotency                │  │
+│  │ • Invoicing v2 & Shipment Tracking: FedEx Tracking Gen                   │  │
+│  │ • Dispute Auto-Defense vs. Z3 Fulfillment Breach Brief Concession        │  │
+│  │ • Defense-in-depth: Re-runs arithmetic invariants independently          │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -102,6 +103,12 @@
 4. **Air-Gapped Private Executor:** The LLM reasoning service holds zero PayPal keys. The Render private executor (`render.yaml`) holds PayPal keys and verifies Ed25519 signatures, single-use nonces, and invariant math before executing payment.
 5. **APIMatic-Modeled PayPal Client:** Structured modularly after APIMatic SDK architecture covering Orders v2, Invoices v2, and Shipment Tracking.
 6. **Dual Independent Zero-Dependency Receipt Verifier:** Every deal produces a `receipt.json`. Run `python pactpay_verify.py receipt.json` to verify the Ed25519 signatures and recompute all invariants in pure Python with zero external solver dependencies. Tested against official RFC 8032 test vectors.
+7. **Native Model Context Protocol (MCP) Server (`backend/mcp_server.py`):** Exposes the complete Neuro-Symbolic procurement and PayPal settlement pipeline as a standard FastMCP server (`FastMCP("PactPay-NeuroSymbolic-Procurement-Server")`). Exposes 4 strongly-typed tools:
+   - `pactpay_discover_channel3_batna`: Real-time retail spread & Net Effective Retail BATNA discovery.
+   - `pactpay_verify_deal_z3`: Telemetry prompt sanitization + Z3 SMT constraint evaluation (7 formal invariants) with Ed25519 clearance token minting.
+   - `pactpay_execute_swarm_procurement`: Full 5-stage swarm reverse e-auction orchestration & PayPal Sandbox settlement.
+   - `pactpay_audit_paypal_dispute`: Immutable Z3 fulfillment contract verification vs. carrier proof of delivery or Z3 Breach Brief concession.
+   Includes a clean JSON-RPC 2.0 stdio fallback with OpenAPI schema introspection when `mcp` is not yet installed.
 
 ---
 
@@ -123,6 +130,35 @@ npm run dev
 *Or run:* `.\run_frontend.bat`
 
 Open **`http://localhost:3000`** in your browser.
+
+### 3. Run the Model Context Protocol (MCP) Server
+Connect any MCP-compatible AI agent (Claude Desktop, Cursor, Postman MCP Inspector) directly to PactPay:
+```powershell
+# Direct stdio server execution
+python backend/mcp_server.py
+
+# List all registered tools and docstrings
+python backend/mcp_server.py --list
+
+# Inspect interactively via Postman or MCP Inspector
+npx @modelcontextprotocol/inspector python backend/mcp_server.py
+```
+
+#### Claude Desktop Configuration (`claude_desktop_config.json`)
+```json
+{
+  "mcpServers": {
+    "pactpay": {
+      "command": "python",
+      "args": ["-m", "backend.mcp_server"],
+      "env": {
+        "PAYPAL_CLIENT_ID": "your_sandbox_client_id",
+        "PAYPAL_CLIENT_SECRET": "your_sandbox_secret"
+      }
+    }
+  }
+}
+```
 
 ---
 
@@ -161,6 +197,11 @@ python backend/test_e2e.py
 ### 5. Verify Any Transaction Receipt with the Standalone Verifier
 ```bash
 python pactpay_verify.py receipt.json
+```
+
+### 6. Verify Model Context Protocol (MCP) Server Tool Definitions
+```bash
+python backend/mcp_server.py --list
 ```
 
 ---

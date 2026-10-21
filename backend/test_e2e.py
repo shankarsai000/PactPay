@@ -156,6 +156,30 @@ def test_pactpay_end_to_end():
     assert disp_brk["breach_brief"]["shortfall_units"] == 3
     log(f"[PASS] PayPal Dispute Z3 Breach Brief OK - Shortfall: {disp_brk['breach_brief']['shortfall_units']} units, Action: {disp_brk['resolution_action']}")
 
+    # 12. Model Context Protocol (MCP) Server Verification
+    import asyncio
+    import mcp_server
+    assert hasattr(mcp_server, "pactpay_discover_channel3_batna")
+    assert hasattr(mcp_server, "pactpay_verify_deal_z3")
+    assert hasattr(mcp_server, "pactpay_execute_swarm_procurement")
+    assert hasattr(mcp_server, "pactpay_audit_paypal_dispute")
+
+    # 12A. Test MCP Channel3 BATNA Discovery Tool
+    mcp_batna = asyncio.run(mcp_server.pactpay_discover_channel3_batna(query="10x Workstations", quantity=10))
+    assert mcp_batna["economics"]["landed_batna_dollars"] == 4746.90
+    assert "snapshot_hash" in mcp_batna
+
+    # 12B. Test MCP Z3 Symbolic Verification Tool
+    mcp_z3 = mcp_server.pactpay_verify_deal_z3(
+        envelope_json='{"merchant_id": "APEX_01", "cart_payload": {"subtotal_cents": 422470, "freight_cents": 11000, "rebate_cents": 6337, "warranty_months": 36, "vendor_trust_score": 94}}',
+        max_budget=4600.0,
+        min_vendor_trust=75,
+    )
+    assert mcp_z3["verified"] is True
+    assert mcp_z3["z3_status"] == "sat"
+    assert "clearance_token" in mcp_z3
+    log(f"[PASS] Model Context Protocol (MCP) Tools OK - BATNA: ${mcp_batna['economics']['landed_batna_dollars']:.2f}, Z3 Status: {mcp_z3['z3_status'].upper()}, Token: {mcp_z3['clearance_token'][:18]}...")
+
     log("=" * 72)
     log("  ALL END-TO-END TESTS PASSED WITH 100% SUCCESS!")
     log("=" * 72)

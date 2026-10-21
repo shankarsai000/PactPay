@@ -120,6 +120,8 @@
 > 
 > *Across 120 benchmark evaluation runs, PactPay achieved a 0.00% False Acceptance Rate with a median 11.9-millisecond solve latency.*
 > 
+> *Plus, with our native FastMCP server, any external agent in Claude Desktop or Postman can invoke our BATNA discovery, Z3 firewall, and PayPal settlement directly over standard Model Context Protocol.*
+> 
 > *By bridging formal SMT logic, AP2 mandates, and PayPal's global payments rail, PactPay provides the ironclad foundation for the autonomous economy. Thank you!"*
 
 ---
