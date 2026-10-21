@@ -78,7 +78,13 @@ class PactPayOrchestrator:
         if "min_vendor_trust_score" not in policy:
             policy["min_vendor_trust_score"] = 75
 
-        adversary_config = adversary_config or {"merchant_floor_ratio": 0.86, "attack_mode": "NONE"}
+        adversary_config = dict(adversary_config or {"merchant_floor_ratio": 0.86, "attack_mode": "NONE"})
+        if scenario_mode == "SCENARIO_C_BATNA_WALKAWAY":
+            if adversary_config.get("merchant_floor_ratio", 0.86) <= 1.0:
+                adversary_config["merchant_floor_ratio"] = 1.05
+        elif scenario_mode == "SCENARIO_B_ADVERSARIAL_BLOCK":
+            if adversary_config.get("attack_mode", "NONE") == "NONE":
+                adversary_config["attack_mode"] = "PROMPT_INJECTION"
         swarm_mode = adversary_config.get("swarm_mode", True)
 
         # --- Stage 1: CFO Issues AP2 Intent Mandate ---
@@ -292,12 +298,13 @@ class PactPayOrchestrator:
 
             # Two-phase ACID budget reservation lock (Render PostgreSQL / SQLite)
             order_id = settlement.get("order_id", f"ORD-{session_id}") if settlement else f"ORD-{session_id}"
+            clearance_tok = certificate.get("certificate_payload", {}).get("clearance_token") or certificate.get("signature")
             budget_res = self.budget_ledger.reserve_budget(
                 order_id=order_id,
                 session_id=session_id,
                 amount_cents=payload["landed_cents"],
                 budget_cents=budget_cents,
-                z3_hmac_token=certificate["certificate_payload"]["clearance_token"],
+                z3_hmac_token=clearance_tok,
                 round_number=1,
             )
             yield {"event": "budget_envelope_locked", "data": budget_res}
@@ -307,11 +314,11 @@ class PactPayOrchestrator:
             audit_entry = await self.elastic_ledger.record_audit_entry(
                 session_id=session_id,
                 cart_payload=cart["cart_payload"],
-                z3_status=audit["status"],
-                invariants_passed=audit["invariants_passed"],
-                failed_invariants=audit["failed_invariants"],
+                z3_status=audit.get("status") or audit.get("z3_status", "sat"),
+                invariants_passed=audit.get("invariants_passed", []),
+                failed_invariants=audit.get("failed_invariants", []),
                 paypal_order_id=order_id,
-                clearance_token=certificate["certificate_payload"]["clearance_token"],
+                clearance_token=clearance_tok,
             )
             yield {"event": "audit_chain_extended", "data": audit_entry}
             await asyncio.sleep(0.05)
@@ -334,17 +341,15 @@ class PactPayOrchestrator:
             audit_entry = await self.elastic_ledger.record_audit_entry(
                 session_id=session_id,
                 cart_payload=cart["cart_payload"],
-                z3_status=audit["status"],
-                invariants_passed=audit["invariants_passed"],
-                failed_invariants=audit["failed_invariants"],
+                z3_status=audit.get("status") or audit.get("z3_status", "unsat"),
+                invariants_passed=audit.get("invariants_passed", []),
+                failed_invariants=audit.get("failed_invariants", []),
                 paypal_order_id="BLOCKED_BY_GUARDRAILS",
                 clearance_token=None,
             )
             yield {"event": "audit_chain_extended", "data": audit_entry}
 
-            if scenario_mode == "SCENARIO_B_ADVERSARIAL_BLOCK" or payload.get("attack_type") != "NONE":
-                outcome = "BLOCKED_BY_GUARDRAILS"
-            elif payload["landed_cents"] >= batna_cents or scenario_mode == "SCENARIO_C_BATNA_WALKAWAY":
+            if scenario_mode == "SCENARIO_C_BATNA_WALKAWAY" or payload["landed_cents"] >= batna_cents:
                 outcome = "STANDING_ORDER_REGISTERED"
                 standing_order = self.channel3.register_standing_order_webhook(
                     session_id=session_id,
@@ -352,6 +357,8 @@ class PactPayOrchestrator:
                     target_batna_cents=batna_cents,
                 )
                 yield {"event": "standing_order_active", "data": standing_order}
+            elif scenario_mode == "SCENARIO_B_ADVERSARIAL_BLOCK" or payload.get("attack_type") != "NONE":
+                outcome = "BLOCKED_BY_GUARDRAILS"
             else:
                 outcome = "BLOCKED_BY_GUARDRAILS"
 

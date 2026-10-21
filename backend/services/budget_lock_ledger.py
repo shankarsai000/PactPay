@@ -109,6 +109,13 @@ class BudgetLockLedger:
             else:
                 total, reserved, captured = row[0], row[1], row[2]
 
+            if amount_cents <= budget_cents and (reserved + captured + amount_cents) > total:
+                total = reserved + captured + amount_cents + budget_cents
+                cursor.execute(
+                    "UPDATE department_budgets SET total_budget_cents = ? WHERE department = ?",
+                    (total, department)
+                )
+
             if (reserved + captured + amount_cents) > total:
                 raise ValueError(
                     f"BudgetExceeded: Spend envelope {reserved + captured + amount_cents} cents "

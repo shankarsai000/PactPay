@@ -27,7 +27,6 @@ npx @modelcontextprotocol/inspector python backend/mcp_server.py
 ```
 """
 
-from __future__ import annotations
 
 import asyncio
 import json
@@ -207,7 +206,7 @@ async def pactpay_discover_channel3_batna(query: str, quantity: int = 10) -> dic
     Returns:
         Itemized retail offers, cryptographic snapshot hash, and total landed BATNA ceiling in cents and dollars.
     """
-    return _batna_service.discover_and_anchor_batna(query=query, quantity=quantity)
+    return await _batna_service.discover_and_anchor_batna(query=query, quantity=quantity)
 
 
 # ---------------------------------------------------------------------------

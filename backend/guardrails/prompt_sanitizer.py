@@ -30,6 +30,24 @@ class PromptSanitizer:
         reasons = [pattern for pattern in self._PATTERNS if re.search(pattern, text, re.IGNORECASE)]
         cleaned = text
         for pattern in self._PATTERNS:
-            cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE)
+            cleaned = re.sub(pattern, "[REDACTED_SYSTEM_OVERRIDE]", cleaned, flags=re.IGNORECASE)
         cleaned = re.sub(r"\s+", " ", cleaned).strip()
         return SanitizationResult(text=cleaned, blocked=bool(reasons), reasons=reasons)
+
+    @classmethod
+    def sanitize_envelope(cls, envelope: dict) -> tuple[dict, list[str]]:
+        """Sanitizes text fields in an envelope, returning (sanitized_envelope, list_of_threats)."""
+        inst = cls()
+        cleaned_env = dict(envelope)
+        threats: list[str] = []
+
+        for field in ("natural_language_rationale", "notes", "merchant_notes"):
+            if field in cleaned_env and isinstance(cleaned_env[field], str):
+                val = cleaned_env[field]
+                res = inst.sanitize(val)
+                if res.blocked:
+                    threats.extend(res.reasons)
+                    cleaned_env[field] = res.text
+                    cleaned_env["prompt_injection_blocked"] = True
+
+        return cleaned_env, threats

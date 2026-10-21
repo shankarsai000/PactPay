@@ -7,10 +7,13 @@ from services.apimatic_paypal_sdk.client import (
     TrackingController,
 )
 
+from services.apimatic_paypal_sdk.validator import APIMaticPayPalValidator
+
 __all__ = [
     "Configuration",
     "PayPalAPIMaticClient",
     "OrdersController",
     "InvoicesController",
     "TrackingController",
+    "APIMaticPayPalValidator",
 ]
