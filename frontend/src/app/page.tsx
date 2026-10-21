@@ -1,5 +1,6 @@
 "use client";
 
+import "../lib/ag-grid-license";
 import { useEffect, useState } from "react";
 import { BreakItBox } from "../components/BreakItBox";
 import { JudgeScenarioBar, ScenarioKey } from "../components/JudgeScenarioBar";

@@ -5,6 +5,7 @@ import { AgGridReact } from "ag-grid-react";
 import type { ColDef, GridReadyEvent, RowClickedEvent } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
+import "../lib/ag-grid-license";
 import "ag-grid-enterprise";
 import { API_BASE_URL } from "../lib/api";
 
