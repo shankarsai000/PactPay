@@ -20,13 +20,14 @@ By interposing a Microsoft Z3 Satisfiability Modulo Theories (SMT) constraint so
 ## 💡 What It Does
 
 PactPay is an end-to-end autonomous procurement firewall and settlement engine:
-1. **CFO Intent Mandate (AP2-Style):** The enterprise CFO declares hard mathematical invariants (Budget ceiling, per-unit price caps, tax bounds, authorized vendor whitelists, minimum net savings vs. market BATNA).
+1. **CFO Intent Mandate (AP2-Style):** The enterprise CFO declares hard mathematical invariants (Budget ceiling, per-unit price caps, tax bounds, authorized vendor whitelists, minimum net savings vs. market BATNA, minimum vendor trust score).
 2. **Channel3 Real-Time BATNA Discovery:** PactPay queries Channel3's unbundled market pricing API (`/v0`) to establish a landed retail benchmark (BATNA) across distributed suppliers.
-3. **Multi-Agent Reverse Dutch Auction:** A buyer agent negotiates with multiple vendor agents in real time to assemble an optimal multi-item compute hardware bundle (Workstations, GPUs, Displays).
-4. **Z3 SMT Spend Firewall:** The proposed cart is verified by a formal Z3 SMT solver. If any invariant is violated, Z3 produces an unsat core diagnostic and computes the `nearest_compliant()` counter-proposal to guide the agent in 2.0 rounds.
-5. **Ed25519 Cryptographic Clearance Certificate:** Upon SAT verification, the engine signs an RFC 8785 canonical clearance certificate with an Ed25519 digital signature, timestamp, and high-entropy nonce (`nonce_{random_hex}`).
-6. **Air-Gapped PayPal MCP Settlement Gate:** An isolated executor verifies the Ed25519 signature and re-checks the integer cents arithmetic before calling PayPal's REST API v2 to create an order, receive buyer authorization, capture funds, and register carrier shipment tracking.
-7. **Standalone Receipt Verifier (`pactpay_verify.py`):** An auditor or judge can verify any clearance certificate offline with zero external dependencies (`python pactpay_verify.py receipt.json`).
+3. **Parallel 3-Vendor Swarm Reverse E-Auction:** A buyer agent coordinates a concurrent multi-round reverse auction evaluated via `asyncio.gather` across competing B2B distributors (Apex Enterprise Supply, GlobalIT Wholesale, ShadowCorp Distributors).
+4. **Elastic Hybrid Vendor Trust Memory:** Connects to Elasticsearch (`pactpay-vendor-trust`) with zero-latency deterministic fallback, evaluating historical fulfillment SLAs and dispute rates into a formal SMT trust invariant (`INV_7_VENDOR_TRUST_MIN_75`).
+5. **Z3 SMT Spend Firewall:** The proposed cart is verified by a formal Z3 SMT solver. If any invariant is violated, Z3 produces an unsat core diagnostic and computes the `nearest_compliant()` counter-proposal to guide the agent in 2.0 rounds.
+6. **Ed25519 Cryptographic Clearance Certificate:** Upon SAT verification, the engine signs an RFC 8785 canonical clearance certificate with an Ed25519 digital signature, timestamp, and high-entropy nonce (`nonce_{random_hex}`).
+7. **Air-Gapped PayPal MCP Settlement Gate:** An isolated executor verifies the Ed25519 signature and re-checks the integer cents arithmetic before calling PayPal's REST API v2 to create an order, receive buyer authorization, capture funds, and register carrier shipment tracking.
+8. **Standalone Receipt Verifier (`pactpay_verify.py`):** An auditor or judge can verify any clearance certificate offline with zero external dependencies (`python pactpay_verify.py receipt.json`).
 
 ---
 

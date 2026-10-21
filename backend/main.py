@@ -43,6 +43,7 @@ class PolicyConfig(BaseModel):
     auto_order_limit: float = Field(default=2000.0, ge=0.0)
     max_freight_ratio: float = Field(default=0.08, ge=0.01, le=0.50)
     min_warranty_months: int = Field(default=12, ge=0)
+    min_vendor_trust_score: int = Field(default=75, ge=0, le=100)
 
 
 class AdversaryConfig(BaseModel):
@@ -53,6 +54,7 @@ class AdversaryConfig(BaseModel):
     )
     custom_attack_text: Optional[str] = None
     max_rounds: int = Field(default=3, ge=1, le=5)
+    swarm_mode: bool = Field(default=True)
 
 
 class ProcurementRequest(BaseModel):
@@ -73,6 +75,7 @@ class BreakItRequest(BaseModel):
     unit_monitor_dollars: float = Field(default=396.85)
     unit_cable_dollars: float = Field(default=25.62)
     freight_dollars: float = Field(default=850.0)
+    vendor_trust_score: int = Field(default=90, ge=0, le=100)
 
 
 JUDGE_PRESET_SCENARIOS: Dict[str, Dict[str, Any]] = {
@@ -117,9 +120,16 @@ async def health_check():
             "z3-smt-negotiation-oracle",
             "ed25519-rfc8032-firewall",
             "apimatic-paypal-sandbox-gate",
+            "elastic-hybrid-vendor-trust",
         ],
         "firewall_public_key": orchestrator.oracle.public_key_hex,
     }
+
+
+@app.get("/api/vendors")
+async def list_swarm_vendors():
+    """Lists swarm vendor distributor personas and their elastic trust profiles."""
+    return {"vendors": orchestrator.trust_service.list_swarm_vendors()}
 
 
 @app.get("/api/judge-presets")
@@ -221,6 +231,7 @@ async def break_it_simulation(req: BreakItRequest):
         warranty_months=36,
         schema_validated=True,
         pay_by_bank=True,
+        vendor_trust_score=req.vendor_trust_score,
     )
 
     nearest = None

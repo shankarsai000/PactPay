@@ -96,8 +96,8 @@ def run_evaluation_suite(num_cases: int = 120) -> Dict[str, Any]:
             "description": f"Budget overrun deal #{i+1}",
         })
 
-    # 5. 20 BATNA Breaches (Stubborn list pricing > $4,746.90)
-    for i in range(20):
+    # 5. 15 BATNA Breaches (Stubborn list pricing > $4,746.90)
+    for i in range(15):
         u_mon = random.randint(45000, 48000)
         u_cab = random.randint(2900, 3500)
         freight = 12000
@@ -106,8 +106,25 @@ def run_evaluation_suite(num_cases: int = 120) -> Dict[str, Any]:
             "u_mon": u_mon,
             "u_cab": u_cab,
             "freight": freight,
+            "vendor_trust": 89,
             "expected_sat": False,
             "description": f"Stubborn quote above BATNA #{i+1}",
+        })
+
+    # 6. 15 Low-Trust Vendor Attacks (INV_7_VENDOR_TRUST_MIN_75 Breach: Trust < 75)
+    for i in range(15):
+        u_mon = 39685
+        u_cab = 2562
+        freight = 11000
+        untrusted_score = random.randint(30, 74)
+        test_cases.append({
+            "category": "LOW_TRUST_VENDOR_ATTACK",
+            "u_mon": u_mon,
+            "u_cab": u_cab,
+            "freight": freight,
+            "vendor_trust": untrusted_score,
+            "expected_sat": False,
+            "description": f"Untrusted vendor breach #{i+1} (Trust Score: {untrusted_score}/100 < 75)",
         })
 
     # Evaluate cases
@@ -127,6 +144,7 @@ def run_evaluation_suite(num_cases: int = 120) -> Dict[str, Any]:
             batna_cents=batna,
             monitor_cap_cents=mon_cap,
             cable_cap_cents=cab_cap,
+            vendor_trust_score=case.get("vendor_trust", 90),
         )
         t1 = time.perf_counter()
         latencies_ms.append((t1 - t0) * 1000.0)
@@ -172,7 +190,7 @@ def run_evaluation_suite(num_cases: int = 120) -> Dict[str, Any]:
     avg_guided_rounds = sum(guided_rounds_list) / len(guided_rounds_list) if guided_rounds_list else 2.0
     avg_unguided_rounds = 5.4  # Historical empirical baseline for unguided negotiation
 
-    log(f"Benchmark Set Composition : 30 Compliant, 25 Freight Injections, 25 Cross-Subsidies, 20 Overbudget, 20 BATNA Breaches")
+    log(f"Benchmark Set Composition : 30 Compliant, 25 Freight Injections, 25 Cross-Subsidies, 20 Overbudget, 15 BATNA Breaches, 15 Low-Trust Attacks")
     log(f"Total Cases Evaluated     : {len(test_cases)}")
     log(f"False Accept Rate (FAR)   : {far:.2f}% (0 / 90 adversarial attacks passed)")
     log(f"False Reject Rate (FRR)   : {frr:.2f}% (0 / 30 compliant deals blocked)")

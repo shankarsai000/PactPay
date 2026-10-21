@@ -33,7 +33,14 @@ def test_pactpay_end_to_end():
     assert presets["net_savings_dollars"] == 475.57
     log(f"[PASS] Presets Reconciled - BATNA: ${presets['channel3_landed_batna']:.2f}, Landed Spend: ${presets['compliant_landed_spend']:.2f}, Savings: ${presets['net_savings_dollars']:.2f} (10.02%)")
 
-    # 3. Scenario A: Compliant Deal
+    # 2B. Elastic Vendor Trust Memory Check
+    res = client.get("/api/vendors")
+    assert res.status_code == 200
+    vendors = res.json()["vendors"]
+    assert len(vendors) == 3
+    log(f"[PASS] Elastic Vendor Trust Service OK - {len(vendors)} Swarm B2B Personas loaded")
+
+    # 3. Scenario A: Compliant Deal with Swarm E-Auction
     res = client.post("/api/procure/run", json={"scenario_mode": "SCENARIO_A_COMPLIANT_WIN"})
     assert res.status_code == 200, f"Scenario A failed: {res.text}"
     sc_a = res.json()["final_state"]["data"]["result"]
@@ -42,7 +49,11 @@ def test_pactpay_end_to_end():
     assert sc_a["computedTotal"] == 4271.33
     assert sc_a["clearanceCertificate"] is not None
     assert sc_a["paypalSettlement"] is not None
-    log(f"[PASS] Scenario A Compliant Deal Verified - Spend: ${sc_a['computedTotal']:.2f}, Savings: ${sc_a['netSavings']:.2f}, Status: SAT")
+
+    inv_names = [p["invariant"] for p in sc_a["z3Audit"]["proof_trace"]]
+    assert "INV_7_VENDOR_TRUST_MIN_75" in inv_names
+    assert "swarmLeaderboard" in sc_a and len(sc_a["swarmLeaderboard"]) == 3
+    log(f"[PASS] Scenario A Compliant Deal Verified - Spend: ${sc_a['computedTotal']:.2f}, Savings: ${sc_a['netSavings']:.2f}, Status: SAT, Invariant 7 SAT")
 
     # 4. Independent Verifier on Receipt
     receipt = sc_a["receipt"]

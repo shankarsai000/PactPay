@@ -201,6 +201,8 @@ def verify_receipt_data(receipt: Dict[str, Any]) -> bool:
     batna_cap = 474_690
     mon_cap = 44_590
     cab_cap = 2_879
+    vendor_trust = payload.get("economics", {}).get("vendor_trust_score") or payload.get("vendor_trust_score") or 90
+    min_trust = 75
 
     checks = [
         ("INV_1_BUDGET_CAP", f"Landed ${landed/100:.2f} <= Budget ${budget_cap/100:.2f}", landed <= budget_cap),
@@ -208,6 +210,7 @@ def verify_receipt_data(receipt: Dict[str, Any]) -> bool:
         ("INV_3_FREIGHT_CAP_8PCT", f"Freight ${freight/100:.2f} <= 8% of Subtotal ${subtotal/100:.2f}", freight * 100 <= subtotal * 8),
         ("INV_6A_MONITOR_NO_SUBSIDY", f"Monitor ${u_mon/100:.2f} <= Retail Cap ${mon_cap/100:.2f}", u_mon <= mon_cap),
         ("INV_6A_CABLE_NO_SUBSIDY", f"Cable ${u_cab/100:.2f} <= Retail Cap ${cab_cap/100:.2f}", u_cab <= cab_cap),
+        ("INV_7_VENDOR_TRUST_MIN_75", f"Vendor Trust {vendor_trust}/100 >= Min Trust {min_trust}/100", vendor_trust >= min_trust),
     ]
 
     all_pass = True

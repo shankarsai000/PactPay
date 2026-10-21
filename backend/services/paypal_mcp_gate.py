@@ -182,8 +182,22 @@ class PayPalGate:
             except Exception:
                 settlement["tracking_number"] = tracking_num
         else:
-            settlement["status"] = "COMPLETED"
-            settlement["tracking_number"] = f"FDX-PACT-{secrets.token_hex(4).upper()} (Sandbox Synthetic)"
-
         record["captured"] = True
         return settlement
+
+    async def execute_verified_settlement(
+        self,
+        *,
+        certificate_envelope: Dict[str, Any],
+        return_url: str = "http://localhost:3000",
+        cancel_url: str = "http://localhost:3000",
+    ) -> Dict[str, Any]:
+        """Alias for create_settlement."""
+        return await self.create_settlement(
+            certificate_envelope=certificate_envelope,
+            return_url=return_url,
+            cancel_url=cancel_url,
+        )
+
+
+CryptographicPayPalGate = PayPalGate

@@ -3,6 +3,7 @@
 Models procurement economics strictly in integer cents with formal SMT invariants,
 detailed per-invariant diagnosis, and optimal nearest-compliant counter calculation.
 When verified SAT, mints an Ed25519-signed clearance certificate with RFC 8785 canonicalization.
+Includes Elastic Hybrid Vendor Trust Index evaluation (INV_7_VENDOR_TRUST_MIN_75).
 """
 
 from __future__ import annotations
@@ -21,7 +22,7 @@ from guardrails.crypto_utils import (
 )
 
 
-class Z3ProcurementOracle:
+class Z3SymbolicFirewall:
     """Z3 Formal SMT solver acting as the spend firewall and negotiation oracle."""
 
     def __init__(self, private_key: Optional[bytes] = None) -> None:
@@ -56,12 +57,14 @@ class Z3ProcurementOracle:
         qty_cab: int = 10,
         freight_cap_pct: int = 8,
         pay_by_bank: bool = True,
+        min_vendor_trust_score: int = 75,
     ):
         """Constructs Z3 symbolic variables, subtotal, landed cost, and named invariant rules."""
         u_mon = Int("u_mon")
         u_cab = Int("u_cab")
         freight = Int("freight")
         disc = Int("disc")
+        vendor_trust = Int("vendor_trust")
 
         sub = qty_mon * u_mon + qty_cab * u_cab
         landed = sub - disc + freight
@@ -74,6 +77,7 @@ class Z3ProcurementOracle:
             "INV_3_FREIGHT_CAP_8PCT": freight * 100 <= sub * freight_cap_pct,
             "INV_6A_MONITOR_NO_SUBSIDY": u_mon <= monitor_cap_cents,
             "INV_6A_CABLE_NO_SUBSIDY": u_cab <= cable_cap_cents,
+            "INV_7_VENDOR_TRUST_MIN_75": vendor_trust >= min_vendor_trust_score,
         }
 
         return {
@@ -81,6 +85,7 @@ class Z3ProcurementOracle:
             "u_cab": u_cab,
             "freight": freight,
             "disc": disc,
+            "vendor_trust": vendor_trust,
             "sub": sub,
             "landed": landed,
             "floor_rules": floor_rules,
@@ -103,6 +108,8 @@ class Z3ProcurementOracle:
         min_warranty_months: int = 12,
         schema_validated: bool = True,
         pay_by_bank: bool = True,
+        vendor_trust_score: int = 90,
+        min_vendor_trust_score: int = 75,
     ) -> Dict[str, Any]:
         """Formally evaluates every invariant in SMT logic. Returns pass/fail and expressions."""
         sys = self.build_symbolic_system(
@@ -113,6 +120,7 @@ class Z3ProcurementOracle:
             qty_mon=qty_mon,
             qty_cab=qty_cab,
             pay_by_bank=pay_by_bank,
+            min_vendor_trust_score=min_vendor_trust_score,
         )
 
         proof_trace = []
@@ -126,6 +134,7 @@ class Z3ProcurementOracle:
                 sys["u_mon"] == u_mon_cents,
                 sys["u_cab"] == u_cab_cents,
                 sys["freight"] == freight_cents,
+                sys["vendor_trust"] == vendor_trust_score,
                 rule,
             )
             passed = s.check() == sat
@@ -150,6 +159,8 @@ class Z3ProcurementOracle:
                 expr = f"${u_mon_cents/100:.2f} <= ${monitor_cap_cents/100:.2f}"
             elif name == "INV_6A_CABLE_NO_SUBSIDY":
                 expr = f"${u_cab_cents/100:.2f} <= ${cable_cap_cents/100:.2f}"
+            elif name == "INV_7_VENDOR_TRUST_MIN_75":
+                expr = f"Vendor Trust Score ({vendor_trust_score}/100) >= Required Minimum ({min_vendor_trust_score}/100)"
 
             proof_trace.append({
                 "invariant": name,
@@ -205,6 +216,83 @@ class Z3ProcurementOracle:
             },
         }
 
+    def evaluate_deal(self, envelope: Dict[str, Any], policy: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Evaluates an AP2 negotiation envelope against policy using formal Z3 SMT invariants."""
+        policy = policy or {}
+        min_trust = int(policy.get("min_vendor_trust_score", 75))
+        vendor_trust_val = int(envelope.get("vendor_trust_score", envelope.get("cart_payload", {}).get("vendor_trust_score", 90)))
+
+        # Extract item pricing and parameters
+        cart_payload = envelope.get("cart_payload")
+        if cart_payload:
+            items = cart_payload.get("items", [])
+            u_mon = items[0]["unit_price_cents"] if len(items) > 0 else 39685
+            u_cab = items[1]["unit_price_cents"] if len(items) > 1 else 2562
+            freight = cart_payload.get("freight_cents", 11000)
+            warranty = cart_payload.get("warranty_months", 36)
+            vendor_id = cart_payload.get("merchant_id") or cart_payload.get("vendor_id", "UNKNOWN")
+            schema_val = True
+        elif "items" in envelope:
+            items = envelope.get("items", [])
+            u_mon = items[0].get("unit_price_cents", 39685) if len(items) > 0 else 39685
+            u_cab = items[1].get("unit_price_cents", 2562) if len(items) > 1 else 2562
+            freight = envelope.get("freight_cents", 11000)
+            warranty = envelope.get("warranty_months", 36)
+            vendor_id = envelope.get("merchant_id") or envelope.get("vendor_id", "UNKNOWN")
+            schema_val = True
+        else:
+            u_mon = int(envelope.get("u_mon_cents", 39685))
+            u_cab = int(envelope.get("u_cab_cents", 2562))
+            freight = int(envelope.get("freight_cents", 11000))
+            warranty = int(envelope.get("warranty_months", 36))
+            vendor_id = envelope.get("merchant_id") or envelope.get("vendor_id", "UNKNOWN")
+            schema_val = bool(envelope.get("schema_validated", True))
+
+        budget_cents = int(policy.get("budget_cents", int(float(policy.get("max_budget", 4600.0)) * 100)))
+        batna_cents = int(policy.get("batna_cents", int(float(policy.get("channel3_landed_batna", 4746.90)) * 100)))
+
+        audit = self.diagnose(
+            u_mon_cents=u_mon,
+            u_cab_cents=u_cab,
+            freight_cents=freight,
+            budget_cents=budget_cents,
+            batna_cents=batna_cents,
+            warranty_months=warranty,
+            min_warranty_months=int(policy.get("min_warranty_months", 12)),
+            vendor_trust_score=vendor_trust_val,
+            min_vendor_trust_score=min_trust,
+            schema_validated=schema_val,
+            pay_by_bank=policy.get("pay_by_bank", True),
+        )
+
+        clearance_token = None
+        if audit["verified"]:
+            try:
+                clearance_token = self.mint_clearance_certificate(
+                    mandate_id=envelope.get("mandate_id", policy.get("mandate_id", "MANDATE-AP2-CFO-001")),
+                    mandate_hash=envelope.get("mandate_hash", policy.get("mandate_hash", "00" * 32)),
+                    deal_hash=envelope.get("cart_hash", "00" * 32),
+                    channel3_snapshot_hash=policy.get("channel3_snapshot_hash", "00" * 32),
+                    audit_diagnosis=audit,
+                    vendor_id=vendor_id,
+                )
+            except Exception:
+                clearance_token = None
+
+        return {
+            "verified": audit["verified"],
+            "z3_status": audit["status"],
+            "failed_invariants": audit["failed_invariants"],
+            "proof_trace": audit["proof_trace"],
+            "computed_total": round(audit["economics"]["landed_cents"] / 100.0, 2),
+            "channel3_batna_total": round(batna_cents / 100.0, 2),
+            "net_savings": audit["economics"]["savings_dollars"],
+            "settlement_route": "PAYPAL_MCP_GATE",
+            "clearance_token": clearance_token,
+            "canonical_payload": cart_payload or envelope,
+            "economics": audit["economics"],
+        }
+
     def nearest_compliant(
         self,
         *,
@@ -228,11 +316,21 @@ class Z3ProcurementOracle:
             qty_mon=qty_mon,
             qty_cab=qty_cab,
             pay_by_bank=pay_by_bank,
+            min_vendor_trust_score=0,  # Focus optimization on pricing variables
         )
 
         dm, dc = Int("dm"), Int("dc")
         opt = Optimize()
-        opt.add(*sys["floor_rules"], *sys["rules"].values(), sys["freight"] == freight_cents)
+        # Add floor rules and pricing rules
+        opt.add(
+            *sys["floor_rules"],
+            sys["rules"]["INV_1_BUDGET_CAP"],
+            sys["rules"]["INV_2_BEATS_BATNA"],
+            sys["rules"]["INV_3_FREIGHT_CAP_8PCT"],
+            sys["rules"]["INV_6A_MONITOR_NO_SUBSIDY"],
+            sys["rules"]["INV_6A_CABLE_NO_SUBSIDY"],
+            sys["freight"] == freight_cents,
+        )
         opt.add(
             dm >= sys["u_mon"] - u_mon_cents,
             dm >= u_mon_cents - sys["u_mon"],
@@ -286,3 +384,7 @@ class Z3ProcurementOracle:
             "signature": sig.hex(),
             "signer_public_key": self.public_key_hex,
         }
+
+
+# Aliases for 100% backward compatibility
+Z3ProcurementOracle = Z3SymbolicFirewall
