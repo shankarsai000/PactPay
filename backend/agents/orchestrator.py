@@ -33,6 +33,9 @@ from guardrails.z3_firewall import Z3ProcurementOracle, Z3SymbolicFirewall
 from services.channel3_batna import Channel3BatnaService
 from services.elastic_trust_memory import ElasticVendorTrustService
 from services.paypal_mcp_gate import CryptographicPayPalGate, PayPalGate
+from services.kernel_browser_verifier import KernelBrowserVerifier
+from services.elastic_audit_ledger import ElasticAuditLedger
+from services.budget_lock_ledger import BudgetLockLedger
 
 
 class PactPayOrchestrator:
@@ -45,6 +48,9 @@ class PactPayOrchestrator:
         self.oracle = Z3SymbolicFirewall()
         self.paypal_gate = CryptographicPayPalGate(self.oracle.public_key_hex)
         self.trust_service = ElasticVendorTrustService()
+        self.kernel_verifier = KernelBrowserVerifier()
+        self.elastic_ledger = ElasticAuditLedger()
+        self.budget_ledger = BudgetLockLedger()
 
         # Swarm and legacy merchant agents
         self.configurable_merchant = ConfigurableMerchantAgent()
@@ -276,6 +282,40 @@ class PactPayOrchestrator:
             )
             outcome = "SETTLEMENT_READY"
 
+            # Launch KERNEL Cloud Browser verification session for visual proof
+            kernel_session = await self.kernel_verifier.launch_verification_session(
+                target_url=settlement.get("approval_link", "https://www.sandbox.paypal.com") if settlement else "https://www.sandbox.paypal.com",
+                expected_price=payload["landed_dollars"],
+            )
+            yield {"event": "kernel_browser_verified", "data": kernel_session}
+            await asyncio.sleep(0.05)
+
+            # Two-phase ACID budget reservation lock (Render PostgreSQL / SQLite)
+            order_id = settlement.get("order_id", f"ORD-{session_id}") if settlement else f"ORD-{session_id}"
+            budget_res = self.budget_ledger.reserve_budget(
+                order_id=order_id,
+                session_id=session_id,
+                amount_cents=payload["landed_cents"],
+                budget_cents=budget_cents,
+                z3_hmac_token=certificate["certificate_payload"]["clearance_token"],
+                round_number=1,
+            )
+            yield {"event": "budget_envelope_locked", "data": budget_res}
+            await asyncio.sleep(0.05)
+
+            # Elastic Cloud SHA-256 hash-chained forensic audit record
+            audit_entry = await self.elastic_ledger.record_audit_entry(
+                session_id=session_id,
+                cart_payload=cart["cart_payload"],
+                z3_status=audit["status"],
+                invariants_passed=audit["invariants_passed"],
+                failed_invariants=audit["failed_invariants"],
+                paypal_order_id=order_id,
+                clearance_token=certificate["certificate_payload"]["clearance_token"],
+            )
+            yield {"event": "audit_chain_extended", "data": audit_entry}
+            await asyncio.sleep(0.05)
+
             receipt = {
                 "receipt_id": f"RCPT-{session_id}",
                 "timestamp": int(time.time()),
@@ -284,20 +324,36 @@ class PactPayOrchestrator:
                 "cart_mandate": cart,
                 "channel3_batna_snapshot": batna_snapshot,
                 "paypal_settlement": settlement,
+                "kernel_verification": kernel_session,
+                "audit_block_hash": audit_entry.get("entry_hash"),
             }
 
-        elif scenario_mode == "SCENARIO_B_ADVERSARIAL_BLOCK" or payload.get("attack_type") != "NONE":
-            outcome = "BLOCKED_BY_GUARDRAILS"
-        elif payload["landed_cents"] >= batna_cents or scenario_mode == "SCENARIO_C_BATNA_WALKAWAY":
-            outcome = "STANDING_ORDER_REGISTERED"
-            standing_order = self.channel3.register_standing_order_webhook(
-                session_id=session_id,
-                target_budget_cents=budget_cents,
-                target_batna_cents=batna_cents,
-            )
-            yield {"event": "standing_order_active", "data": standing_order}
         else:
-            outcome = "BLOCKED_BY_GUARDRAILS"
+            kernel_session = None
+            budget_res = None
+            audit_entry = await self.elastic_ledger.record_audit_entry(
+                session_id=session_id,
+                cart_payload=cart["cart_payload"],
+                z3_status=audit["status"],
+                invariants_passed=audit["invariants_passed"],
+                failed_invariants=audit["failed_invariants"],
+                paypal_order_id="BLOCKED_BY_GUARDRAILS",
+                clearance_token=None,
+            )
+            yield {"event": "audit_chain_extended", "data": audit_entry}
+
+            if scenario_mode == "SCENARIO_B_ADVERSARIAL_BLOCK" or payload.get("attack_type") != "NONE":
+                outcome = "BLOCKED_BY_GUARDRAILS"
+            elif payload["landed_cents"] >= batna_cents or scenario_mode == "SCENARIO_C_BATNA_WALKAWAY":
+                outcome = "STANDING_ORDER_REGISTERED"
+                standing_order = self.channel3.register_standing_order_webhook(
+                    session_id=session_id,
+                    target_budget_cents=budget_cents,
+                    target_batna_cents=batna_cents,
+                )
+                yield {"event": "standing_order_active", "data": standing_order}
+            else:
+                outcome = "BLOCKED_BY_GUARDRAILS"
 
         batna_val = batna_snapshot["economics"]["landed_batna_dollars"]
         landed_val = payload["landed_dollars"]
@@ -348,6 +404,12 @@ class PactPayOrchestrator:
             "paypalSettlement": settlement,
             "standingOrder": standing_order,
             "receipt": receipt,
+            "kernelSession": kernel_session,
+            "browserLiveViewUrl": kernel_session.get("browser_live_view_url") if kernel_session else None,
+            "browser_live_view_url": kernel_session.get("browser_live_view_url") if kernel_session else None,
+            "auditChain": audit_entry,
+            "budgetReservation": budget_res,
+            "budgetTelemetry": self.budget_ledger.get_department_telemetry(),
             "swarmLeaderboard": all_round_leaderboards[-1] if all_round_leaderboards else [],
             "swarm_leaderboard": all_round_leaderboards[-1] if all_round_leaderboards else [],
         }

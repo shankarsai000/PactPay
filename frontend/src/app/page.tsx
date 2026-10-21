@@ -6,6 +6,7 @@ import { BreakItBox } from "../components/BreakItBox";
 import { JudgeScenarioBar, ScenarioKey } from "../components/JudgeScenarioBar";
 import { PayPalSettlementModal } from "../components/PayPalSettlementModal";
 import { ProcurementGrid, ProcurementResult } from "../components/ProcurementGrid";
+import { ProductionInfraModal } from "../components/ProductionInfraModal";
 import { ReceiptModal } from "../components/ReceiptModal";
 import { API_BASE_URL } from "../lib/api";
 
@@ -18,6 +19,7 @@ export default function Home() {
   const [message, setMessage] = useState("Select a scenario or run the live red-team console to begin.");
   const [settlement, setSettlement] = useState<NonNullable<ProcurementResult["paypalSettlement"]> | null>(null);
   const [viewingReceipt, setViewingReceipt] = useState<any | null>(null);
+  const [showInfraModal, setShowInfraModal] = useState(false);
 
   // Auto-run Scenario A on first mount so the trading floor is populated immediately!
   useEffect(() => {
@@ -136,6 +138,27 @@ export default function Home() {
               <span className="m-val highlight-val">$4,271.33</span>
             </div>
           </div>
+          <div style={{ marginTop: 12 }}>
+            <button
+              className="button primary"
+              onClick={() => setShowInfraModal(true)}
+              style={{
+                width: "100%",
+                fontSize: 12,
+                fontWeight: 700,
+                padding: "8px 12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                background: "linear-gradient(135deg, #0284c7 0%, #2563eb 100%)",
+                boxShadow: "0 0 16px rgba(56, 189, 248, 0.3)",
+                border: "1px solid rgba(56, 189, 248, 0.4)",
+              }}
+            >
+              <span>🏛️ 4 Sponsor Credit Pools & Architecture</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -186,6 +209,14 @@ export default function Home() {
           receipt={viewingReceipt}
           apiBase={apiBase}
           onClose={() => setViewingReceipt(null)}
+        />
+      )}
+
+      {showInfraModal && (
+        <ProductionInfraModal
+          onClose={() => setShowInfraModal(false)}
+          apiBase={apiBase}
+          initialLiveBrowserUrl={rows[0]?.browserLiveViewUrl || (rows[0] as any)?.browser_live_view_url}
         />
       )}
     </main>

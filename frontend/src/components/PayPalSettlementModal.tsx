@@ -11,6 +11,7 @@ interface Settlement {
   mode: "paypal_sandbox" | "local_demo";
   approval_url?: string | null;
   tracking_number?: string | null;
+  browser_live_view_url?: string | null;
 }
 
 interface Props {
@@ -89,14 +90,27 @@ export function PayPalSettlementModal({ settlement, apiBase = API_BASE_URL, onCl
           </p>
 
           {settlement.approval_url && (
-            <a
-              className="button paypal-auth-btn"
-              href={settlement.approval_url}
-              target="_blank"
-              rel="noreferrer"
-            >
-              🔐 Open PayPal Sandbox Approval Link ↗
-            </a>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+              <a
+                className="button paypal-auth-btn"
+                href={settlement.approval_url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                🔐 Open PayPal Sandbox Approval Link ↗
+              </a>
+              {settlement.browser_live_view_url && (
+                <a
+                  className="button ghost"
+                  href={settlement.browser_live_view_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ borderColor: "#a855f7", color: "#c084fc" }}
+                >
+                  🖥️ KERNEL Live Cloud Browser Stream ↗
+                </a>
+              )}
+            </div>
           )}
         </div>
 

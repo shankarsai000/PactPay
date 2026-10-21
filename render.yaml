@@ -1,63 +1,55 @@
-# Render Multi-Service Blueprint for PactPay
-# Architectural Separation of Powers:
-# 1. pactpay-frontend: Public Next.js 16 Web Application
-# 2. pactpay-orchestrator: Public FastAPI Orchestrator (holds zero PayPal credentials)
-# 3. pactpay-executor: Render Private Service (pserv, accessible only via internal network, holds PayPal execution keys)
+databases:
+  - name: pactpay-postgres
+    databaseName: pactpay_ledger
+    user: pactpay_admin
+    plan: basic-256mb
+    region: oregon
 
 services:
-  # --- Public Frontend ---
+  # 1. Zero-Cold-Start FastAPI Production Backend ($7/mo covered by $50 Render Credit)
   - type: web
-    name: pactpay-frontend
-    env: node
-    plan: free
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    startCommand: npm run start
-    envVars:
-      - key: NEXT_PUBLIC_API_URL
-        fromService:
-          type: web
-          name: pactpay-orchestrator
-          property: host
-
-  # --- Public Agent Orchestrator ---
-  - type: web
-    name: pactpay-orchestrator
+    name: pactpay-backend
     env: python
-    plan: free
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    region: oregon
+    plan: starter
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT --workers 2"
+    healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.9
-      - key: PACTPAY_CLEARANCE_SECRET
+        value: 3.11.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pactpay-postgres
+          property: connectionString
+      - key: PACTPAY_HMAC_SECRET
         generateValue: true
-      - key: EXECUTOR_SERVICE_URL
-        fromService:
-          type: pserv
-          name: pactpay-executor
-          property: host
-
-  # --- Private Air-Gapped Settlement Executor ---
-  - type: pserv
-    name: pactpay-executor
-    env: python
-    plan: free
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
+      - key: CHANNEL3_API_KEY
+        sync: false
+      - key: KERNEL_API_KEY
+        sync: false
+      - key: ELASTICSEARCH_URL
+        sync: false
+      - key: ELASTIC_API_KEY
+        sync: false
       - key: PAYPAL_CLIENT_ID
         sync: false
       - key: PAYPAL_CLIENT_SECRET
         sync: false
-      - key: PAYPAL_BASE_URL
+      - key: PAYPAL_API_BASE
         value: https://api-m.sandbox.paypal.com
-      - key: PAYPAL_RETURN_URL
+
+  # 2. Zero-Cold-Start Next.js AG Grid Trading Floor ($7/mo covered by $50 Render Credit)
+  - type: web
+    name: pactpay-frontend
+    env: node
+    region: oregon
+    plan: starter
+    buildCommand: "cd frontend && npm install && npm run build"
+    startCommand: "cd frontend && npm start"
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE_URL
         fromService:
           type: web
-          name: pactpay-frontend
-          property: host
+          name: pactpay-backend
+          property: url

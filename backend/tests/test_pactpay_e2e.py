@@ -28,6 +28,10 @@ from guardrails.prompt_sanitizer import PromptSanitizer
 from guardrails.z3_firewall import Z3SymbolicFirewall
 from main import app
 from services.paypal_mcp_gate import CryptographicPayPalGate, SecurityViolationError
+from services.channel3_batna import Channel3BatnaService
+from services.kernel_browser_verifier import KernelBrowserVerifier
+from services.elastic_audit_ledger import ElasticAuditLedger
+from services.budget_lock_ledger import BudgetLockLedger
 
 
 # ---------------------------------------------------------------------------
@@ -303,9 +307,159 @@ def test_e2e_judge_presets_api():
     assert res_c_data["outcome"] in ("STANDING_ORDER_REGISTERED", "BATNA_WALKAWAY", "BLOCKED_BY_GUARDRAILS") or res_c_data.get("z3Status") == "unsat"
 
 
+# ---------------------------------------------------------------------------
+# Test 9: Channel3 Multi-SKU BOM Decomposition & Line-Item Split-Cart Arbitrage
+# ---------------------------------------------------------------------------
+def test_channel3_bom_decomposition_and_split_arbitrage():
+    """Validates Channel3 4-SKU BOM unbundling ($12,000 pod) and line-item split routing."""
+    c3 = Channel3BatnaService()
+    bom = c3.decompose_bom(query="Equip a 10-person AI engineering pod", total_budget=12000.0)
+    assert bom["items_count"] == 4
+    assert bom["economics"]["gross_subtotal_dollars"] == 11586.90
+    assert bom["economics"]["affiliate_rebate_dollars"] == 293.44
+    assert bom["economics"]["net_effective_batna_dollars"] == 11293.46
+    assert bom["economics"]["within_budget"] is True
+
+    # Test line-item split cart arbitrage
+    arbitrage = c3.evaluate_split_cart_arbitrage()
+    assert arbitrage["strategy"] == "LINE_ITEM_SPLIT_CART_ARBITRAGE"
+    assert arbitrage["paypal_b2b_settlement"]["items_count"] == 2
+    assert arbitrage["channel3_retail_routing"]["items_count"] == 2
+    assert arbitrage["net_arbitrage_savings_dollars"] > 0
+    assert arbitrage["total_landed_arbitraged_dollars"] < arbitrage["unsplit_retail_batna_dollars"]
+
+
+# ---------------------------------------------------------------------------
+# Test 10: KERNEL Cloud Browser Anti-Drip Checkout & Legacy Scraper
+# ---------------------------------------------------------------------------
+def test_kernel_cloud_browser_anti_drip_and_legacy_scraper():
+    """Validates KERNEL cloud browser session launch, anti-drip cart verification, and legacy portal scraper."""
+    verifier = KernelBrowserVerifier()
+    
+    # 1. Anti-drip pricing checkout verification
+    checkout_audit = asyncio.run(verifier.verify_retail_checkout(
+        retail_url="https://www.dell.com/checkout/cart",
+        expected_unit_price=445.90,
+        quantity=10,
+    ))
+    assert checkout_audit["verified"] is True
+    assert checkout_audit["anti_drip_audit_passed"] is True
+    assert checkout_audit["hidden_drip_fees"] == 0.00
+    assert "browser_live_view_url" in checkout_audit["kernel_session"]
+    assert checkout_audit["kernel_session"]["egress_policy"] == "STRICT_ALLOWLIST_PAYPAL_AND_CHANNEL3"
+
+    # 2. Legacy B2B Wholesaler Web Quote Scraper
+    scraped = asyncio.run(verifier.scrape_legacy_distributor_quote())
+    assert scraped["source"] == "Kernel Browser Agent (Legacy B2B Portal Scraper)"
+    assert len(scraped["scraped_cart_mandate"]["items"]) == 2
+    assert scraped["scraped_cart_mandate"]["vendor_trust_score"] == 85
+
+
+# ---------------------------------------------------------------------------
+# Test 11: Elastic Cloud SHA-256 Hash-Chained Audit Ledger & ES|QL Trust
+# ---------------------------------------------------------------------------
+def test_elastic_audit_chain_and_esql_trust():
+    """Validates SHA-256 hash-chain cryptographic ledger integrity and ES|QL supplier trust calculation."""
+    ledger = ElasticAuditLedger()
+    
+    # Record first audit block
+    b1 = asyncio.run(ledger.record_audit_entry(
+        session_id="SESSION_001",
+        cart_payload={"vendor": "Apex", "amount_cents": 427133},
+        z3_status="sat",
+        invariants_passed=["INV_1", "INV_2", "INV_3", "INV_4", "INV_5", "INV_6A", "INV_6B", "INV_7"],
+        failed_invariants=[],
+        paypal_order_id="02136085R83568202",
+        clearance_token="hmac_sha256_mock_001",
+    ))
+    assert b1["block_index"] == 1
+    assert b1["prev_entry_hash"] == ElasticAuditLedger.GENESIS_HASH
+
+    # Record second audit block
+    b2 = asyncio.run(ledger.record_audit_entry(
+        session_id="SESSION_002",
+        cart_payload={"vendor": "ShadowCorp", "amount_cents": 501133},
+        z3_status="unsat",
+        invariants_passed=["INV_4", "INV_6A"],
+        failed_invariants=["INV_1", "INV_2", "INV_3", "INV_5", "INV_7"],
+        paypal_order_id="BLOCKED",
+    ))
+    assert b2["block_index"] == 2
+    assert b2["prev_entry_hash"] == b1["entry_hash"]
+
+    # Verify cryptographic integrity offline
+    verification = ledger.verify_ledger_chain_integrity()
+    assert verification["valid"] is True
+    assert verification["blocks_verified"] == 2
+    assert verification["status"] == "CHAIN_INTEGRITY_VERIFIED"
+
+    # Test ES|QL supplier trust calculation
+    apex_trust = asyncio.run(ledger.run_esql_vendor_trust_query("MERCHANT_APEX_01"))
+    assert apex_trust["computed_trust_score"] == 94
+    shadow_trust = asyncio.run(ledger.run_esql_vendor_trust_query("MERCHANT_SHADOW_03"))
+    assert shadow_trust["computed_trust_score"] == 61
+
+
+# ---------------------------------------------------------------------------
+# Test 12: Render PostgreSQL Spend-Envelope Locking & Deterministic Idempotency
+# ---------------------------------------------------------------------------
+def test_render_postgres_spend_lock_and_idempotency():
+    """Validates two-phase ACID budget reservation, RFC 9562 UUIDv5 idempotency, and over-spend prevention."""
+    lock_ledger = BudgetLockLedger()
+    
+    # Check initial telemetry
+    telemetry = lock_ledger.get_department_telemetry("ENTERPRISE_IT")
+    assert telemetry["total_budget_dollars"] == 4600.00
+    assert telemetry["reserved_dollars"] == 0.00
+
+    # Test deterministic RFC 9562 UUIDv5 derivation
+    key1 = lock_ledger.generate_idempotency_key("SESS_99", 1, "token_abc")
+    key2 = lock_ledger.generate_idempotency_key("SESS_99", 1, "token_abc")
+    assert key1 == key2
+
+    # Reserve budget ($4,271.33 out of $4,600.00)
+    res = lock_ledger.reserve_budget(
+        order_id="ORD-99",
+        session_id="SESS_99",
+        amount_cents=427133,
+        budget_cents=460000,
+        z3_hmac_token="token_abc",
+        round_number=1,
+    )
+    assert res["idempotent_replay"] is False
+    assert res["state"] == "CREATED"
+    assert res["amount_dollars"] == 4271.33
+
+    # Idempotent replay: Retrying with identical parameters returns cached reservation
+    res_replay = lock_ledger.reserve_budget(
+        order_id="ORD-99",
+        session_id="SESS_99",
+        amount_cents=427133,
+        budget_cents=460000,
+        z3_hmac_token="token_abc",
+        round_number=1,
+    )
+    assert res_replay["idempotent_replay"] is True
+
+    # Transition order state machine
+    t1 = lock_ledger.transition_state("ORD-99", "COMPLETED")
+    assert t1["state"] == "COMPLETED"
+
+    # Over-spend check: Attempting to reserve another $4,271.33 fails with ValueError
+    with pytest.raises(ValueError, match="BudgetExceeded"):
+        lock_ledger.reserve_budget(
+            order_id="ORD-100",
+            session_id="SESS_100",
+            amount_cents=427133,
+            budget_cents=460000,
+            z3_hmac_token="token_def",
+            round_number=1,
+        )
+
+
 if __name__ == "__main__":
     print("=" * 72)
-    print("  RUNNING PACTPAY DETERMINISTIC 8-TEST PYTEST E2E SUITE")
+    print("  RUNNING PACTPAY DETERMINISTIC 12-TEST E2E SUITE")
     print("=" * 72)
     test_z3_compliant_deal_mints_hmac()
     print("[PASS] 1. test_z3_compliant_deal_mints_hmac")
@@ -323,7 +477,15 @@ if __name__ == "__main__":
     print("[PASS] 7. test_paypal_gate_rejects_forged_hmac_token")
     test_e2e_judge_presets_api()
     print("[PASS] 8. test_e2e_judge_presets_api")
+    test_channel3_bom_decomposition_and_split_arbitrage()
+    print("[PASS] 9. test_channel3_bom_decomposition_and_split_arbitrage")
+    test_kernel_cloud_browser_anti_drip_and_legacy_scraper()
+    print("[PASS] 10. test_kernel_cloud_browser_anti_drip_and_legacy_scraper")
+    test_elastic_audit_chain_and_esql_trust()
+    print("[PASS] 11. test_elastic_audit_chain_and_esql_trust")
+    test_render_postgres_spend_lock_and_idempotency()
+    print("[PASS] 12. test_render_postgres_spend_lock_and_idempotency")
     print("=" * 72)
-    print("  ALL 8 TESTS PASSED DETERMINISTICALLY WITH 100% SUCCESS!")
+    print("  ALL 12 TESTS PASSED DETERMINISTICALLY WITH 100% SUCCESS!")
     print("=" * 72)
 

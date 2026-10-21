@@ -172,6 +172,48 @@ We ran a rigorous 120-case evaluation harness (`backend/eval_harness.py`) testin
 
 ---
 
+## 🏛️ Strategic Allocation of 4 Sponsor Credit Pools & Production Architecture
+
+Most hackathon teams submit a stateless prototype that makes a single API call, stores data in an in-memory array that wipes on restart, and sleeps on a free-tier server with 50-second cold starts. 
+
+By combining **all four sponsor credit pools** with our **Z3 SMT Spend Firewall** and **PayPal Agent Toolkit**, PactPay operates as a **zero-cold-start, tamper-evident, browser-verified enterprise B2B procurement platform**:
+
+| Resource Pool | Allocation Strategy & Burn Rate | Production Upgrade Unlocked for PactPay |
+| :--- | :--- | :--- |
+| **Channel3**<br>*(21,000 Credits)* | ~15–30 credits per multi-item Bill of Materials (BOM) run + **0 credits** for `/v1/products/{id}` freshness hydration *(Supports ~840+ full enterprise runs)* | **Multi-SKU BOM Decomposition & Live Market Order Book:** Decomposes a high-level enterprise prompt (e.g., *"Equip a 10-person AI pod"*) into a 4-item hardware/accessory BOM, pulling 50+ live retail offers to calculate exact min/median/max market spreads, affiliate rebates, and split-cart hybrid arbitrage between PayPal B2B orders and Channel3 retail links. |
+| **KERNEL**<br>*($55 Credits)* | On-demand headful Chrome sessions (`pip install kernel` / `@onkernel/sdk`), billed only during active execution seconds *(~2,200+ live browser verifications)* | **Embedded Live Cloud Browser (`browser_live_view_url`) & Legacy Vendor Portal Agent:** Streams an interactive Chrome browser inside the PactPay UI that visually verifies retail checkout DOMs (anti-drip pricing checks), scrapes legacy non-API B2B wholesaler portals into standard AP2 Cart Mandates, and renders the live PayPal Sandbox checkout portal. |
+| **Elastic Cloud**<br>*(44-Day Free Trial)* | Hosted Elasticsearch cluster covering the deadline and extended judging windows across 3 dedicated indices: `pactpay-audit-chain`, `pactpay-adversarial-signatures`, `pactpay-vendor-telemetry`. | **Hash-Chained Audit Ledger & ES|QL Fraud/Trust Engine:** (1) SHA-256 cryptographic hash-chained ledger where `entry_hash = SHA256(prev_hash + payload + z3_status + order_id)`, (2) hybrid vector + BM25 threat shield, and (3) real-time ES|QL supplier trust scoring dynamically bound into **Z3 Invariant 7 (`vendor_trust >= 75`)**. |
+| **Render**<br>*($50 Credits)* | `pactpay-backend` (starter: $7/mo) + `pactpay-frontend` (starter: $7/mo) + `pactpay-postgres` (basic: $7/mo) = **$21/mo total** *(Covers >2.3 months of 24/7 uptime)* | **Zero-Cold-Start Production Cluster + PostgreSQL Spend Ledger:** Eliminates free-tier spin-down delays (0s cold start) and enforces ACID spend-envelope locks (`SELECT ... FOR UPDATE`) with deterministic RFC 9562 / UUIDv5 idempotency keys so retried agent calls can never double-charge. |
+
+### The 4 Production Engineering Upgrades
+
+1. **Upgrade 1: KERNEL Cloud Browser Verification & Live View Stream (`$55 Credits`)**
+   - **Visual Execution Proof:** In standard agent demos, judges only see text logs. With Kernel, judges see an interactive Chrome browser stream (`browser_live_view_url`) embedded right inside the PactPay UI.
+   - **Anti-Drip Pricing Cart Audit:** Retailers often advertise a low price in search APIs but append mandatory handling fees at checkout. Before locking the Channel3 BATNA, the Kernel agent inspects the actual retail cart DOM and feeds the true landed retail price into the Z3 solver.
+   - **Bridging Non-API Wholesalers:** Navigates legacy B2B distributor web quote forms, extracts the generated quote table from the DOM, and pipes it directly into the Z3 SMT Firewall.
+   - **Network-Jailed Egress Security:** Restricted strictly to `*.paypal.com` and verified merchant domains.
+
+2. **Upgrade 2: Elastic Cloud Hash-Chained Audit Ledger & ES|QL Intelligence (`44-Day Trial`)**
+   - **`pactpay-audit-chain`:** Cryptographic SHA-256 hash-chained ledger providing forensic immutability for CFOs and compliance auditors. Tamper-evident offline verification available via `/api/elastic/audit-chain`.
+   - **`pactpay-adversarial-signatures`:** Hybrid vector + BM25 shield intercepting indirect prompt injections before they touch the buyer LLM.
+   - **`pactpay-vendor-telemetry`:** Uses ES|QL to compute real-time supplier reliability:
+     ```sql
+     FROM pactpay-vendor-telemetry
+     | WHERE merchant_id == ?merchant_id
+     | STATS avg_on_time = AVG(on_time_pct), dispute_rate = AVG(disputed)
+     | EVAL computed_trust_score = ROUND((avg_on_time * 100) - (dispute_rate * 250), 0)
+     ```
+
+3. **Upgrade 3: Channel3 Multi-SKU BOM Decomposer & Arbitrage Engine (`21,000 Credits`)**
+   - **Multi-SKU BOM Decomposition:** Decomposes requests into multi-item workstation pods with live retail spreads and affiliate commission rebates.
+   - **Split-Cart Hybrid Arbitrage:** When a wholesale distributor beats retail BATNA on displays but not accessories, PactPay performs line-item split settlement—settling monitors via PayPal B2B Order/Invoice while routing accessories to Channel3 retail links.
+
+4. **Upgrade 4: Render Production Blueprint with ACID Spend-Envelope Locking (`$50 Credits`)**
+   - **Two-Phase Spend Reservation:** Atomic `SELECT ... FOR UPDATE` lock enforcing `reserved_cents + captured_cents + order_cents <= budget_cents`.
+   - **Deterministic RFC 9562 Idempotency:** Derives `PayPal-Request-Id = UUIDv5(session_id + round_number + z3_hmac_token)` and manages the order state machine (`CREATED` → `PAYER_ACTION_REQUIRED` → `APPROVED` → `COMPLETED`).
+
+---
+
 ## 🚀 How to Run Locally
 
 ### 1. Prerequisites
