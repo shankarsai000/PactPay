@@ -101,8 +101,10 @@ export interface ProcurementResult {
 }
 
 interface Props {
-  rows: ProcurementResult[];
-  onOpenSettlement: (settlement: NonNullable<ProcurementResult["paypalSettlement"]>) => void;
+  rows?: ProcurementResult[];
+  rowData?: ProcurementResult[];
+  onOpenSettlement?: (settlement: NonNullable<ProcurementResult["paypalSettlement"]>) => void;
+  onOpenPayPalModal?: (settlement: any) => void;
   onViewReceipt?: (receipt: any) => void;
   apiBase?: string;
 }
@@ -192,7 +194,16 @@ const SparklineRenderer = (params: any) => {
   );
 };
 
-export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase = API_BASE_URL }: Props) {
+export function ProcurementGrid({
+  rows,
+  rowData,
+  onOpenSettlement,
+  onOpenPayPalModal,
+  onViewReceipt,
+  apiBase = API_BASE_URL,
+}: Props) {
+  const actualRows = rowData || rows || [];
+  const handleOpenSettlement = onOpenSettlement || onOpenPayPalModal || (() => {});
   const gridRef = useRef<AgGridReact>(null);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [aiQuery, setAiQuery] = useState("");
@@ -412,7 +423,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
                   style={{ padding: "6px 12px", fontSize: "12px" }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onOpenSettlement(row.paypalSettlement!);
+                    handleOpenSettlement(row.paypalSettlement!);
                   }}
                 >
                   💳 PayPal
@@ -434,7 +445,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
         },
       },
     ],
-    [expandedSession, onOpenSettlement]
+    [expandedSession, handleOpenSettlement]
   );
 
   const defaultColDef = useMemo<ColDef>(
@@ -470,7 +481,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
     }
   };
 
-  const selectedRow = rows.find((r) => r.sessionId === expandedSession) || rows[0];
+  const selectedRow = actualRows.find((r) => r.sessionId === expandedSession) || actualRows[0];
 
   return (
     <div className="results-wrap" style={{ padding: "16px", background: "var(--bg-secondary)" }}>
@@ -566,7 +577,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
       >
         <AgGridReact
           ref={gridRef}
-          rowData={rows}
+          rowData={actualRows}
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           pinnedBottomRowData={pinnedBottomRowData}
@@ -609,7 +620,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
                         ...selectedRow.paypalSettlement!,
                         browser_live_view_url: selectedRow.browserLiveViewUrl || (selectedRow as any).browser_live_view_url,
                       };
-                      onOpenSettlement(sett);
+                      handleOpenSettlement(sett);
                     }}
                   >
                     💳 Settle via PayPal

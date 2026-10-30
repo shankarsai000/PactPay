@@ -151,6 +151,10 @@ class Z3SymbolicFirewall:
                     failed_invariants.append(name)
                     failed_invariants.append("INV_6A")
                     failed_invariants.append("INV_6A_NO_CROSS_SUBSIDY_ch3_thunderbolt4_cable_2m")
+                elif name == "INV_7_VENDOR_TRUST_MIN_75":
+                    failed_invariants.append(name)
+                    failed_invariants.append("INV_7_VENDOR_TRUST")
+                    failed_invariants.append("INV_7_ELASTIC_VENDOR_TRUST")
                 elif name.startswith("INV_6A"):
                     failed_invariants.append(name)
                     if "INV_6A" not in failed_invariants:
@@ -255,6 +259,29 @@ class Z3SymbolicFirewall:
                 "savings_pct": round(savings_cents / batna_cents * 100, 2) if batna_cents else 0.0,
             },
         }
+
+    @staticmethod
+    def canonicalize_deal(envelope: Dict[str, Any], computed_total: float = 0.0) -> str:
+        """Derives a deterministic canonical JSON string for HMAC clearance minting."""
+        items_source = envelope.get("line_items") or envelope.get("cart_payload", {}).get("items", []) or envelope.get("items", [])
+        payload = {
+            "merchant_id": envelope.get("merchant_id", "MERCHANT_B2B_01"),
+            "total_cents": int(round(computed_total * 100)) if computed_total else int(envelope.get("total_cents", 0)),
+            "shipping_cents": int(round(float(envelope.get("shipping_fee", 0.0)) * 100)) if "shipping_fee" in envelope else int(envelope.get("freight_cents", 0)),
+            "warranty_months": int(envelope.get("warranty_months", 12)),
+            "items": [
+                {
+                    "id": str(item.get("channel3_product_id") or item.get("canonical_product_id", "")),
+                    "qty": int(item.get("offered_qty", item.get("quantity", item.get("requested_qty", 10)))),
+                    "unit_cents": int(round(float(item.get("offered_unit_price", 0.0)) * 100)) if "offered_unit_price" in item else int(item.get("unit_price_cents", 0)),
+                }
+                for item in sorted(
+                    items_source,
+                    key=lambda x: str(x.get("channel3_product_id") or x.get("canonical_product_id", "")),
+                )
+            ],
+        }
+        return json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
     def evaluate_deal(self, envelope: Dict[str, Any], policy: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Evaluates an AP2 negotiation envelope against policy using formal Z3 SMT invariants."""
