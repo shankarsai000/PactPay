@@ -171,7 +171,7 @@ export function ProductionInfraModal({
         aria-modal="true"
         style={{ maxWidth: 1080, maxHeight: "90vh", overflowY: "auto" }}
       >
-        <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+        <button suppressHydrationWarning className="modal-close" onClick={onClose} aria-label="Close">×</button>
 
         <div className="modal-top">
           <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 6 }}>
@@ -191,6 +191,7 @@ export function ProductionInfraModal({
         {/* Navigation Tabs */}
         <div style={{ display: "flex", gap: 8, borderBottom: "1px solid var(--border-color)", paddingBottom: 12, marginBottom: 20 }}>
           <button
+            suppressHydrationWarning
             className={`button ${activeTab === "overview" ? "primary" : "ghost"}`}
             onClick={() => setActiveTab("overview")}
             style={{ fontSize: 13, padding: "6px 14px" }}
@@ -198,6 +199,7 @@ export function ProductionInfraModal({
             🏛️ 4-Pool Overview & Capacity
           </button>
           <button
+            suppressHydrationWarning
             className={`button ${activeTab === "channel3" ? "primary" : "ghost"}`}
             onClick={() => { setActiveTab("channel3"); if (!bomData) runBomDecomposition(); }}
             style={{ fontSize: 13, padding: "6px 14px" }}
@@ -205,6 +207,7 @@ export function ProductionInfraModal({
             🛍️ Channel3 Multi-SKU BOM (21k Credits)
           </button>
           <button
+            suppressHydrationWarning
             className={`button ${activeTab === "kernel" ? "primary" : "ghost"}`}
             onClick={() => { setActiveTab("kernel"); if (!kernelSession) launchKernelVerification(); }}
             style={{ fontSize: 13, padding: "6px 14px" }}
@@ -212,6 +215,7 @@ export function ProductionInfraModal({
             🖥️ KERNEL Live Cloud Browser ($55 Credits)
           </button>
           <button
+            suppressHydrationWarning
             className={`button ${activeTab === "elastic" ? "primary" : "ghost"}`}
             onClick={() => { setActiveTab("elastic"); if (!auditChainStatus) verifyElasticLedger(); }}
             style={{ fontSize: 13, padding: "6px 14px" }}
@@ -219,6 +223,7 @@ export function ProductionInfraModal({
             🔍 Elastic Audit Ledger (44-Day Trial)
           </button>
           <button
+            suppressHydrationWarning
             className={`button ${activeTab === "render" ? "primary" : "ghost"}`}
             onClick={() => { setActiveTab("render"); if (!budgetTelemetry) refreshBudgetTelemetry(); }}
             style={{ fontSize: 13, padding: "6px 14px" }}
@@ -348,10 +353,10 @@ export function ProductionInfraModal({
                 </p>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="button ghost" onClick={runBomDecomposition} disabled={loading} style={{ fontSize: 12 }}>
+                <button suppressHydrationWarning className="button ghost" onClick={runBomDecomposition} disabled={loading} style={{ fontSize: 12 }}>
                   🔄 Refresh BOM
                 </button>
-                <button className="button primary" onClick={runSplitArbitrage} disabled={loading} style={{ fontSize: 12 }}>
+                <button suppressHydrationWarning className="button primary" onClick={runSplitArbitrage} disabled={loading} style={{ fontSize: 12 }}>
                   ⚡ Run Split-Cart Arbitrage
                 </button>
               </div>
@@ -433,10 +438,10 @@ export function ProductionInfraModal({
                 </p>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="button ghost" onClick={scrapeLegacyDistributor} disabled={loading} style={{ fontSize: 12 }}>
+                <button suppressHydrationWarning className="button ghost" onClick={scrapeLegacyDistributor} disabled={loading} style={{ fontSize: 12 }}>
                   🏢 Scrape Legacy Distributor
                 </button>
-                <button className="button primary" onClick={launchKernelVerification} disabled={loading} style={{ fontSize: 12 }}>
+                <button suppressHydrationWarning className="button primary" onClick={launchKernelVerification} disabled={loading} style={{ fontSize: 12 }}>
                   🔍 Verify Retail Checkout DOM
                 </button>
               </div>
@@ -506,10 +511,10 @@ export function ProductionInfraModal({
                 </p>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="button ghost" onClick={runThreatScan} disabled={loading} style={{ fontSize: 12 }}>
+                <button suppressHydrationWarning className="button ghost" onClick={runThreatScan} disabled={loading} style={{ fontSize: 12 }}>
                   🛡️ Test Adversarial Vector Scan
                 </button>
-                <button className="button primary" onClick={verifyElasticLedger} disabled={loading} style={{ fontSize: 12 }}>
+                <button suppressHydrationWarning className="button primary" onClick={verifyElasticLedger} disabled={loading} style={{ fontSize: 12 }}>
                   ✓ Verify Cryptographic Chain Integrity
                 </button>
               </div>
@@ -570,7 +575,7 @@ export function ProductionInfraModal({
                   Two-phase reservation locks (<code>SELECT ... FOR UPDATE</code>) prevent double-spend on retry.
                 </p>
               </div>
-              <button className="button primary" onClick={refreshBudgetTelemetry} disabled={loading} style={{ fontSize: 12 }}>
+              <button suppressHydrationWarning className="button primary" onClick={refreshBudgetTelemetry} disabled={loading} style={{ fontSize: 12 }}>
                 🔄 Refresh Spend Envelope
               </button>
             </div>
@@ -612,7 +617,7 @@ export function ProductionInfraModal({
         )}
 
         <div className="modal-actions" style={{ marginTop: 20, borderTop: "1px solid var(--border-color)", paddingTop: 16 }}>
-          <button className="button ghost" onClick={onClose}>Close Overview</button>
+          <button suppressHydrationWarning className="button ghost" onClick={onClose}>Close Overview</button>
         </div>
       </section>
     </div>

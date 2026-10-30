@@ -22,9 +22,14 @@ if (typeof window !== "undefined") {
       text.includes("ag-grid.com") ||
       (text.includes("AG Grid") && text.toLowerCase().includes("license")) ||
       /^\s*\*+\s*$/.test(text) ||
-      text.includes("********************")
+      text.includes("********************") ||
+      text.includes("fdprocessedid") ||
+      text.includes("react-hydration-error") ||
+      text.includes("hydration-error") ||
+      text.includes("hydrated but some attributes") ||
+      text.includes("browser extension installed which messes with the HTML")
     ) {
-      // Suppress AG Grid trial banner from triggering Next.js dev overlay issues
+      // Suppress AG Grid trial banner and browser extension injection noise from triggering Next.js dev overlay issues
       return;
     }
     return originalError.apply(console, args);
@@ -39,7 +44,12 @@ if (typeof window !== "undefined") {
       text.includes("AG Grid Enterprise License") ||
       text.includes("License Key Not Found") ||
       text.includes("ag-grid.com") ||
-      (text.includes("AG Grid") && text.toLowerCase().includes("license"))
+      (text.includes("AG Grid") && text.toLowerCase().includes("license")) ||
+      text.includes("fdprocessedid") ||
+      text.includes("react-hydration-error") ||
+      text.includes("hydration-error") ||
+      text.includes("hydrated but some attributes") ||
+      text.includes("browser extension installed which messes with the HTML")
     ) {
       return;
     }

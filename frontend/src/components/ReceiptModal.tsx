@@ -46,7 +46,7 @@ export function ReceiptModal({ receipt, apiBase, onClose }: Props) {
   return (
     <div className="modal-backdrop" role="presentation">
       <section className="modal receipt-modal" role="dialog" aria-modal="true">
-        <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+        <button suppressHydrationWarning className="modal-close" onClick={onClose} aria-label="Close">×</button>
 
         <div className="modal-top">
           <span className="live-badge">AUDIT EVIDENCE ARTIFACT</span>
@@ -57,10 +57,10 @@ export function ReceiptModal({ receipt, apiBase, onClose }: Props) {
         </div>
 
         <div className="receipt-actions-bar">
-          <button className="button" onClick={handleVerify} disabled={busy}>
+          <button suppressHydrationWarning className="button" onClick={handleVerify} disabled={busy}>
             {busy ? "Running Verifier..." : "🛡️ Run Standalone Python Verifier"}
           </button>
-          <button className="button ghost" onClick={downloadJson}>
+          <button suppressHydrationWarning className="button ghost" onClick={downloadJson}>
             💾 Download receipt.json
           </button>
         </div>
@@ -76,7 +76,7 @@ export function ReceiptModal({ receipt, apiBase, onClose }: Props) {
         </div>
 
         <div className="modal-actions">
-          <button className="button ghost" onClick={onClose}>Close</button>
+          <button suppressHydrationWarning className="button ghost" onClick={onClose}>Close</button>
         </div>
       </section>
     </div>

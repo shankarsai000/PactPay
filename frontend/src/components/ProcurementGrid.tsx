@@ -86,6 +86,16 @@ export interface ProcurementResult {
     target_budget_cents: number;
     target_batna_cents: number;
   } | null;
+  browserLiveViewUrl?: string;
+  browser_live_view_url?: string;
+  auditChain?: {
+    entry_hash?: string;
+    prev_hash?: string;
+    chain_index?: number;
+    tamper_verified?: boolean;
+    [key: string]: any;
+  } | null;
+  audit_chain?: any;
   receipt?: any;
   isPinnedSummary?: boolean;
 }
@@ -397,6 +407,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
             <div style={{ display: "flex", alignItems: "center", gap: "8px", height: "100%" }}>
               {row.paypalSettlement ? (
                 <button
+                  suppressHydrationWarning
                   className="button settle-btn"
                   style={{ padding: "6px 12px", fontSize: "12px" }}
                   onClick={(e) => {
@@ -408,6 +419,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
                 </button>
               ) : null}
               <button
+                suppressHydrationWarning
                 className="button inspect-btn"
                 style={{ padding: "6px 10px", fontSize: "12px" }}
                 onClick={(e) => {
@@ -467,6 +479,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
         <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
           <div style={{ position: "relative", flex: 1 }}>
             <input
+              suppressHydrationWarning
               type="text"
               value={aiQuery}
               onChange={(e) => setAiQuery(e.target.value)}
@@ -490,6 +503,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
             </span>
           </div>
           <button
+            suppressHydrationWarning
             className="button"
             style={{ padding: "0 18px", fontSize: "13px" }}
             onClick={() => executeAiCommand(aiQuery)}
@@ -506,6 +520,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
           {QUICK_COMMANDS.map((chip) => (
             <button
               key={chip.label}
+              suppressHydrationWarning
               onClick={() => executeAiCommand(chip.command)}
               style={{
                 fontSize: "11px",
@@ -578,6 +593,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
               <div style={{ display: "flex", gap: "8px" }}>
                 {selectedRow.receipt && (
                   <button
+                    suppressHydrationWarning
                     className="button receipt-btn"
                     onClick={() => onViewReceipt && onViewReceipt(selectedRow.receipt)}
                   >
@@ -586,6 +602,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
                 )}
                 {selectedRow.paypalSettlement && (
                   <button
+                    suppressHydrationWarning
                     className="button settle-btn"
                     onClick={() => {
                       const sett = {
@@ -736,6 +753,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
                 </p>
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "12px" }}>
                   <button
+                    suppressHydrationWarning
                     className="button inspect-btn"
                     disabled={disputeLoading}
                     onClick={() => runDisputeTest(selectedRow, 10)}
@@ -743,6 +761,7 @@ export function ProcurementGrid({ rows, onOpenSettlement, onViewReceipt, apiBase
                     🛡️ Test Compliant Delivery (Delivered 10/10 units)
                   </button>
                   <button
+                    suppressHydrationWarning
                     className="button inspect-btn"
                     disabled={disputeLoading}
                     style={{ borderColor: "rgba(239, 68, 68, 0.4)", color: "#ef4444" }}

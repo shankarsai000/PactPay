@@ -140,6 +140,7 @@ export default function Home() {
           </div>
           <div style={{ marginTop: 12 }}>
             <button
+              suppressHydrationWarning
               className="button primary"
               onClick={() => setShowInfraModal(true)}
               style={{

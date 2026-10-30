@@ -52,7 +52,7 @@ export function PayPalSettlementModal({ settlement, apiBase = API_BASE_URL, onCl
   return (
     <div className="modal-backdrop" role="presentation">
       <section className="modal settlement-modal" role="dialog" aria-modal="true" aria-labelledby="settlement-title">
-        <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+        <button suppressHydrationWarning className="modal-close" onClick={onClose} aria-label="Close">×</button>
 
         <div className="modal-top">
           <span className="live-badge paypal-badge">
@@ -133,8 +133,9 @@ export function PayPalSettlementModal({ settlement, apiBase = API_BASE_URL, onCl
           {status && <p className="capture-status">{status}</p>}
 
           <div className="modal-actions">
-            <button className="button ghost" onClick={onClose}>Done / Close</button>
+            <button suppressHydrationWarning className="button ghost" onClick={onClose}>Done / Close</button>
             <button
+              suppressHydrationWarning
               className="button capture-btn"
               onClick={capture}
               disabled={busy || Boolean(trackingNumber)}

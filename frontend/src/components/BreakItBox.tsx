@@ -78,6 +78,7 @@ export function BreakItBox({ apiBase }: Props) {
           <label className="field-label">
             Adversarial Merchant Payload / Injection Text:
             <textarea
+              suppressHydrationWarning
               className="break-it-textarea"
               rows={3}
               value={prompt}
@@ -90,6 +91,7 @@ export function BreakItBox({ apiBase }: Props) {
             <label>
               Monitor: ${monPrice.toFixed(2)}
               <input
+                suppressHydrationWarning
                 type="range"
                 min="300"
                 max="500"
@@ -101,6 +103,7 @@ export function BreakItBox({ apiBase }: Props) {
             <label>
               Cable: ${cabPrice.toFixed(2)}
               <input
+                suppressHydrationWarning
                 type="range"
                 min="15"
                 max="60"
@@ -112,6 +115,7 @@ export function BreakItBox({ apiBase }: Props) {
             <label>
               Freight: ${freight.toFixed(2)}
               <input
+                suppressHydrationWarning
                 type="range"
                 min="50"
                 max="1200"
@@ -122,7 +126,7 @@ export function BreakItBox({ apiBase }: Props) {
             </label>
           </div>
 
-          <button className="button danger-btn" onClick={handleTest} disabled={busy}>
+          <button suppressHydrationWarning className="button danger-btn" onClick={handleTest} disabled={busy}>
             {busy ? "Evaluating Invariants in Z3..." : "⚡ Test Against Z3 Spend Firewall"}
           </button>
         </div>

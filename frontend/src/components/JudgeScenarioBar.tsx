@@ -57,6 +57,7 @@ export function JudgeScenarioBar({ onRun, busy, activeScenario }: Props) {
           return (
             <button
               key={sc.key}
+              suppressHydrationWarning
               className={`scenario-card ${sc.badgeType} ${isSelected ? "selected" : ""}`}
               onClick={() => onRun(sc.key)}
               disabled={busy}
