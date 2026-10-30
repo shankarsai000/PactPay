@@ -22,13 +22,14 @@ export default function Home() {
   const [viewingReceipt, setViewingReceipt] = useState<any | null>(null);
   const [showInfraModal, setShowInfraModal] = useState(false);
   const [telemetryLogs, setTelemetryLogs] = useState<string[]>([
-    `[${new Date().toLocaleTimeString()}] System Initialized: Channel3 · KERNEL · Elastic ES|QL · Z3 SMT · PayPal Sandbox ready.`,
+    "[System Init] Channel3 · KERNEL · Elastic ES|QL · Z3 SMT · PayPal Sandbox ready.",
   ]);
   const [lastKernelSession, setLastKernelSession] = useState<string>("kern_sim_live_2026");
   const [lastElasticHash, setLastElasticHash] = useState<string>("0000000000000000");
 
   const addLog = (msg: string) => {
-    setTelemetryLogs((prev) => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 49)]);
+    const timeStr = new Date().toLocaleTimeString("en-US", { hour12: false });
+    setTelemetryLogs((prev) => [`[${timeStr}] ${msg}`, ...prev.slice(0, 49)]);
   };
 
   // Auto-run Scenario A on first mount so the trading floor is populated immediately!
@@ -291,10 +292,14 @@ export default function Home() {
               Clear Log
             </button>
           </div>
-          <div style={{ maxHeight: 110, overflowY: "auto", fontFamily: "monospace", fontSize: 11, lineHeight: "1.5", color: "#cbd5e1" }}>
+          <div
+            suppressHydrationWarning
+            style={{ maxHeight: 110, overflowY: "auto", fontFamily: "monospace", fontSize: 11, lineHeight: "1.5", color: "#cbd5e1" }}
+          >
             {telemetryLogs.map((log, idx) => (
               <div
                 key={idx}
+                suppressHydrationWarning
                 style={{
                   color: log.includes("SETTLED") ? "#10b981" : log.includes("BLOCKED") ? "#ef4444" : log.includes("BATNA_WALKAWAY") ? "#f59e0b" : "#94a3b8",
                 }}
