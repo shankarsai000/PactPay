@@ -363,8 +363,8 @@ class Z3SymbolicFirewall:
             vendor_trust_val = 61 if "SHADOW" in str(v_id) else 90
         vendor_trust_val = int(vendor_trust_val)
 
-        budget_cents = int(policy.get("budget_cents", int(float(policy.get("max_budget", 4600.0)) * 100)))
-        batna_cents = int(policy.get("batna_cents", int(float(policy.get("channel3_landed_batna", 4746.90)) * 100)))
+        budget_cents = int(policy.get("budget_cents", int(round(float(policy.get("max_budget", 4600.0)) * 100))))
+        batna_cents = int(policy.get("batna_cents", int(round(float(policy.get("channel3_landed_batna", 4746.90)) * 100))))
 
         audit = self.diagnose(
             u_mon_cents=u_mon,

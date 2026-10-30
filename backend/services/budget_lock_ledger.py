@@ -109,13 +109,6 @@ class BudgetLockLedger:
             else:
                 total, reserved, captured = row[0], row[1], row[2]
 
-            if amount_cents <= budget_cents and (reserved + captured + amount_cents) > total:
-                total = reserved + captured + amount_cents + budget_cents
-                cursor.execute(
-                    "UPDATE department_budgets SET total_budget_cents = ? WHERE department = ?",
-                    (total, department)
-                )
-
             if (reserved + captured + amount_cents) > total:
                 raise ValueError(
                     f"BudgetExceeded: Spend envelope {reserved + captured + amount_cents} cents "
@@ -214,3 +207,19 @@ class BudgetLockLedger:
                 "captured_dollars": round(cap / 100.0, 2),
                 "available_dollars": round((tot - res - cap) / 100.0, 2),
             }
+
+    def reset_department(self, department: str = "ENTERPRISE_IT", budget_cents: int = 460000) -> None:
+        """Resets a department's reserved and captured spend envelopes for testing or new budget cycles."""
+        with self._lock:
+            cursor = self._conn.cursor()
+            now = int(time.time())
+            cursor.execute("""
+            INSERT INTO department_budgets (department, total_budget_cents, reserved_cents, captured_cents, updated_at)
+            VALUES (?, ?, 0, 0, ?)
+            ON CONFLICT(department) DO UPDATE SET
+                total_budget_cents = excluded.total_budget_cents,
+                reserved_cents = 0,
+                captured_cents = 0,
+                updated_at = excluded.updated_at;
+            """, (department, budget_cents, now))
+            self._conn.commit()

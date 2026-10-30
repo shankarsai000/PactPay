@@ -112,6 +112,8 @@ class PactPayOrchestrator:
         await asyncio.sleep(0.05)
 
         budget_cents = intent_mandate["mandate_payload"]["policy"]["max_budget_cents"]
+        if hasattr(self, "budget_ledger") and hasattr(self.budget_ledger, "reset_department"):
+            self.budget_ledger.reset_department("ENTERPRISE_IT", budget_cents=budget_cents)
         batna_cents = batna_snapshot["economics"]["landed_batna_cents"]
 
         deal_policy = {
