@@ -39,3 +39,4 @@ async def seed_elastic():
 
 if __name__ == "__main__":
     asyncio.run(seed_elastic())
+
