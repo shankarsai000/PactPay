@@ -103,12 +103,14 @@
 4. **Air-Gapped Private Executor:** The LLM reasoning service holds zero PayPal keys. The Render private executor (`render.yaml`) holds PayPal keys and verifies Ed25519 signatures, single-use nonces, and invariant math before executing payment.
 5. **APIMatic-Modeled PayPal Client:** Structured modularly after APIMatic SDK architecture covering Orders v2, Invoices v2, and Shipment Tracking.
 6. **Dual Independent Zero-Dependency Receipt Verifier:** Every deal produces a `receipt.json`. Run `python pactpay_verify.py receipt.json` to verify the Ed25519 signatures and recompute all invariants in pure Python with zero external solver dependencies. Tested against official RFC 8032 test vectors.
-7. **Native Model Context Protocol (MCP) Server (`backend/mcp_server.py`):** Exposes the complete Neuro-Symbolic procurement and PayPal settlement pipeline as a standard FastMCP server (`FastMCP("PactPay-NeuroSymbolic-Procurement-Server")`). Exposes 4 strongly-typed tools:
-   - `pactpay_discover_channel3_batna`: Real-time retail spread & Net Effective Retail BATNA discovery.
-   - `pactpay_verify_deal_z3`: Telemetry prompt sanitization + Z3 SMT constraint evaluation (7 formal invariants) with Ed25519 clearance token minting.
-   - `pactpay_execute_swarm_procurement`: Full 5-stage swarm reverse e-auction orchestration & PayPal Sandbox settlement.
-   - `pactpay_audit_paypal_dispute`: Immutable Z3 fulfillment contract verification vs. carrier proof of delivery or Z3 Breach Brief concession.
-   Includes a clean JSON-RPC 2.0 stdio fallback with OpenAPI schema introspection when `mcp` is not yet installed.
+7. **Native Model Context Protocol (MCP) Server (`backend/mcp_server.py`):** Exposes the complete Neuro-Symbolic procurement and PayPal settlement pipeline as a standard FastMCP server (`FastMCP("PactPay-NeuroSymbolic-Procurement-Server")`). Exposes 5 strongly-typed tools and 1 audit resource:
+   - `pactpay_discover_channel3_batna`: Real-time retail spread & Net Effective Retail BATNA discovery + KERNEL cloud browser checkout verification.
+   - `pactpay_query_elastic_vendor_trust`: Parameterized ES|QL query against Elastic Cloud for vendor reliability & dispute scoring (Z3 Invariant 7).
+   - `pactpay_verify_deal_z3`: Telemetry prompt sanitization + Z3 SMT constraint evaluation (7 formal invariants) with deterministic HMAC-SHA256 clearance token minting.
+   - `pactpay_execute_guarded_procurement`: Full 5-stage end-to-end multi-agent pipeline orchestration, Z3 verification, and PayPal Sandbox order creation.
+   - `pactpay_capture_paypal_order`: Captures approved PayPal orders (`pay_order`) and registers FedEx carrier shipment tracking (`create_shipment_tracking`).
+   - `pactpay://audit-chain/latest`: Resource returning the tamper-evident SHA-256 hash-chained forensic audit ledger.
+   Includes a built-in 1-click CLI self-test (`python mcp_server.py --self-test`) and zero-dependency stdio fallback.
 
 ---
 
@@ -134,26 +136,23 @@ Open **`http://localhost:3000`** in your browser.
 ### 3. Run the Model Context Protocol (MCP) Server
 Connect any MCP-compatible AI agent (Claude Desktop, Cursor, Postman MCP Inspector) directly to PactPay:
 ```powershell
-# Direct stdio server execution
-python backend/mcp_server.py
+# Instant CLI Self-Test (verifies all 5 tools + audit resource):
+cd backend
+python mcp_server.py --self-test
 
-# List all registered tools and docstrings
-python backend/mcp_server.py --list
-
-# Inspect interactively via Postman or MCP Inspector
+# Inspect interactively via Postman or Official MCP Inspector:
 npx @modelcontextprotocol/inspector python backend/mcp_server.py
 ```
 
-#### Claude Desktop Configuration (`claude_desktop_config.json`)
+#### Claude Desktop / Cursor IDE Configuration (`claude_desktop_config.json` or `.cursor/mcp.json`)
 ```json
 {
   "mcpServers": {
-    "pactpay": {
+    "pactpay-guardian": {
       "command": "python",
-      "args": ["-m", "backend.mcp_server"],
+      "args": ["d:/Pactpay/backend/mcp_server.py"],
       "env": {
-        "PAYPAL_CLIENT_ID": "your_sandbox_client_id",
-        "PAYPAL_CLIENT_SECRET": "your_sandbox_secret"
+        "PAYPAL_API_BASE": "https://api-m.sandbox.paypal.com"
       }
     }
   }

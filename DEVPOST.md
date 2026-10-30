@@ -127,12 +127,15 @@ flowchart TD
 
 ### 8. 🔌 Model Context Protocol (MCP) Server Track (`backend/mcp_server.py`)
 - **Native FastMCP Server:** Exposes PactPay's entire Neuro-Symbolic procurement and PayPal settlement pipeline as an enterprise MCP server (`FastMCP("PactPay-NeuroSymbolic-Procurement-Server")`).
-- **4 Strongly-Typed MCP Tools:**
-  1. `pactpay_discover_channel3_batna`: Real-time retail spread & Net Effective Retail BATNA discovery.
-  2. `pactpay_verify_deal_z3`: Telemetry prompt sanitization + Microsoft Z3 SMT constraint evaluation (7 formal invariants) with cryptographic clearance token generation.
-  3. `pactpay_execute_swarm_procurement`: Full 5-stage swarm reverse e-auction orchestration & PayPal Orders v2 Sandbox settlement.
-  4. `pactpay_audit_paypal_dispute`: Immutable Z3 fulfillment contract verification vs. carrier proof of delivery / Breach Brief concession.
-- **Claude Desktop & Postman Ready:** Plugs directly into Claude Desktop or Postman MCP Inspector via standard stdio JSON-RPC 2.0 with an intelligent zero-dependency fallback runner.
+- **5 Strongly-Typed MCP Tools & 1 Audit Ledger Resource:**
+  1. `pactpay_discover_channel3_batna`: Real-time retail spread & Net Effective Retail BATNA discovery + KERNEL cloud browser verification.
+  2. `pactpay_query_elastic_vendor_trust`: Parameterized ES|QL query against Elastic Cloud for vendor reliability & dispute scoring (`INV_7_ELASTIC_VENDOR_TRUST`).
+  3. `pactpay_verify_deal_z3`: Telemetry prompt sanitization + Microsoft Z3 SMT constraint evaluation (7 formal invariants) with deterministic HMAC-SHA256 clearance token minting.
+  4. `pactpay_execute_guarded_procurement`: Full 5-stage end-to-end multi-agent pipeline orchestration, Z3 verification, and PayPal Sandbox order creation.
+  5. `pactpay_capture_paypal_order`: Captures approved PayPal orders (`pay_order`) and registers FedEx carrier shipment tracking (`create_shipment_tracking`).
+  6. `pactpay://audit-chain/latest`: Resource returning the tamper-evident SHA-256 hash-chained forensic audit ledger.
+- **Built-in CLI Self-Test Runner:** Run `python mcp_server.py --self-test` to test and verify all 5 tools and the audit resource in one command without requiring an external MCP host.
+- **Claude Desktop, Cursor & Postman Ready:** Plugs directly into Claude Desktop, Cursor, or Postman MCP Inspector via standard stdio JSON-RPC 2.0 with an intelligent fallback runner.
 
 ### 9. 🏛️ 4-Pool Infrastructure & Automated Master Test Suite Track
 - **Channel3 (21,000 Credits):** Net Effective BATNA oracle calculation, 100M+ SKU discovery, and automatic Scenario C price-tracking walk-away monitoring.
