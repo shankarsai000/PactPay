@@ -177,16 +177,18 @@ DEFAULT_VENDOR_PROFILES: Dict[str, Dict[str, Any]] = {
 
 class ElasticTrustAndAuditService:
     """
-    Elastic Cloud Integration (44-Day Trial):
+    Elastic Cloud Integration (44-Day Trial & Resilient Fallback):
     1. Queries `/_query` (ES|QL) to compute vendor trust score for Z3 INV_7.
     2. Queries `/pactpay-adversarial-signatures/_search` for hybrid threat detection.
     3. Appends SHA-256 hash-chained audit logs to `/pactpay-audit-chain/_doc`.
+    4. Auto-fallback: if trial expires or cluster sleeps, seamlessly uses zero-latency local fallback.
     """
 
     def __init__(self):
         self.es_url = os.getenv("ELASTICSEARCH_URL", "").rstrip("/")
         self.api_key = os.getenv("ELASTIC_API_KEY", "")
         self._local_chain: List[Dict[str, Any]] = []
+        self._last_error_time: float = 0.0
 
     def _headers(self) -> Dict[str, str]:
         return {
@@ -205,9 +207,11 @@ class ElasticTrustAndAuditService:
             ),
             "params": [merchant_id],
         }
-        if self.es_url and self.api_key:
+        # Circuit-breaker: if error occurred within last 30s, use instant fallback
+        now = time.time()
+        if self.es_url and self.api_key and (now - self._last_error_time > 30.0):
             try:
-                async with httpx.AsyncClient(timeout=6.0) as client:
+                async with httpx.AsyncClient(timeout=2.0) as client:
                     resp = await client.post(
                         f"{self.es_url}/_query?format=json",
                         headers=self._headers(),
@@ -222,8 +226,10 @@ class ElasticTrustAndAuditService:
                                 "trust_score": int(values[0][-1]),
                                 "source": "LIVE_ELASTIC_ESQL",
                             }
+                    else:
+                        self._last_error_time = now
             except Exception:
-                pass
+                self._last_error_time = now
 
         profile = DEFAULT_VENDOR_PROFILES.get(merchant_id, DEFAULT_VENDOR_PROFILES["MERCHANT_B2B_01"])
         return {**profile, "source": "ELASTIC_FALLBACK_CACHE"}
@@ -252,9 +258,10 @@ class ElasticTrustAndAuditService:
         }
         self._local_chain.append(doc)
 
-        if self.es_url and self.api_key:
+        now = time.time()
+        if self.es_url and self.api_key and (now - self._last_error_time > 30.0):
             try:
-                async with httpx.AsyncClient(timeout=6.0) as client:
+                async with httpx.AsyncClient(timeout=2.0) as client:
                     resp = await client.post(
                         f"{self.es_url}/pactpay-audit-chain/_doc",
                         headers=self._headers(),
@@ -263,8 +270,10 @@ class ElasticTrustAndAuditService:
                     if resp.status_code in (200, 201):
                         doc["elastic_indexed"] = True
                         return doc
+                    else:
+                        self._last_error_time = now
             except Exception:
-                pass
+                self._last_error_time = now
 
         doc["elastic_indexed"] = False
         return doc
