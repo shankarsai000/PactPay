@@ -2,6 +2,7 @@
 
 import "../lib/ag-grid-license";
 import { useEffect, useState } from "react";
+import { TopNav } from "../components/TopNav";
 import { BreakItBox } from "../components/BreakItBox";
 import { JudgeScenarioBar, ScenarioKey } from "../components/JudgeScenarioBar";
 import { PayPalSettlementModal } from "../components/PayPalSettlementModal";
@@ -134,126 +135,181 @@ export default function Home() {
   const totalCapitalSaved = rows.reduce((acc, r) => acc + (r.z3Status === "sat" ? (r.netSavings || 0) : 0), 0);
 
   return (
-    <main className="page-shell">
-      {/* Top Banner / Hero */}
-      <header className="hero">
-        <div className="hero-content">
-          <div className="hero-badge-row">
-            <span className="hero-pill">Autonomous A2A Commerce & Spend Firewall</span>
-            <span className="hero-subpill">Google AP2-Style Mandates · Channel3 · Microsoft Z3 · APIMatic-Modeled PayPal REST v2</span>
-            <span className="hero-replay-badge">MODE: LIVE SANDBOX / REPLAY VERIFIED</span>
-          </div>
-          <h1>
-            Sellers win by hiding cost inside bundles.<br />
-            <span className="hero-highlight">PactPay unbundles every quote against live market prices.</span>
-          </h1>
-          <p className="hero-lead">
-            Money moves only when an SMT constraint solver and an Ed25519 signed chain agree.
-            Dual verification with zero math hallucinations.
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col selection:bg-sky-500/30 selection:text-sky-200">
+      <TopNav onOpenInfra={() => setShowInfraModal(true)} apiBase={apiBase} />
 
-        <div className="hero-status-card">
-          <div className="status-indicator">
-            <span className="pulse-dot" />
-            <span className="status-text">FastAPI Backend: {apiBase}</span>
+      <main className="page-shell flex-1">
+        {/* Top Banner / Hero */}
+        <header className="hero">
+          <div className="hero-content">
+            <div className="hero-badge-row">
+              <span className="hero-pill">Autonomous A2A Commerce & Spend Firewall</span>
+              <span className="hero-subpill">Google AP2-Style Mandates · Channel3 · Microsoft Z3 · APIMatic PayPal REST v2</span>
+              <span className="hero-replay-badge">MODE: LIVE SANDBOX / REPLAY VERIFIED</span>
+            </div>
+            <h1>
+              Sellers win by hiding cost inside bundles.<br />
+              <span className="hero-highlight">PactPay unbundles every quote against live market prices.</span>
+            </h1>
+            <p className="hero-lead">
+              Money moves only when an SMT constraint solver and an Ed25519 signed chain agree.
+              Dual verification with zero math hallucinations.
+            </p>
           </div>
-          <div className="hero-metrics">
+
+          <div className="hero-status-card">
+            <div className="status-indicator">
+              <span className="pulse-dot" />
+              <span className="status-text font-mono">FastAPI Backend: {apiBase}</span>
+            </div>
+            <div className="hero-metrics">
+              <div>
+                <span className="m-label">CFO Mandate Cap</span>
+                <span className="m-val">$4,600.00</span>
+              </div>
+              <div>
+                <span className="m-label">Channel3 BATNA</span>
+                <span className="m-val">$4,746.90</span>
+              </div>
+              <div>
+                <span className="m-label">Compliant Target</span>
+                <span className="m-val highlight-val">$4,271.33</span>
+              </div>
+            </div>
+            <div style={{ marginTop: 14 }}>
+              <button
+                suppressHydrationWarning
+                className="button primary"
+                onClick={() => setShowInfraModal(true)}
+                style={{
+                  width: "100%",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: "9px 12px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  background: "linear-gradient(135deg, #0284c7 0%, #2563eb 100%)",
+                  boxShadow: "0 0 20px rgba(56, 189, 248, 0.35)",
+                  border: "1px solid rgba(56, 189, 248, 0.5)",
+                }}
+              >
+                <span>🏛️ 4 Sponsor Credit Pools & Architecture</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* 1-Click Judge Scenarios Bar */}
+        <JudgeScenarioBar
+          onRun={runScenario}
+          busy={busy}
+          activeScenario={activeScenario}
+        />
+
+        {/* 4-Pool Infrastructure KPI Bar - Fintech Noir Elevation */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14, margin: "16px 0" }}>
+          {/* KPI 1: Net Capital Saved */}
+          <div style={{
+            background: "linear-gradient(180deg, rgba(15, 23, 42, 0.75) 0%, rgba(11, 15, 23, 0.9) 100%)",
+            border: "1px solid rgba(16, 185, 129, 0.3)",
+            borderRadius: 14,
+            padding: "16px 20px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            boxShadow: "0 0 0 1px rgba(16, 185, 129, 0.1), 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 20px rgba(16, 185, 129, 0.12)",
+          }}>
             <div>
-              <span className="m-label">CFO Mandate Cap</span>
-              <span className="m-val">$4,600.00</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Net Capital Saved</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#10b981", background: "rgba(16, 185, 129, 0.15)", padding: "1px 6px", borderRadius: 10 }}>+10.02%</span>
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#10b981", marginTop: 4, fontFeatureSettings: "'tnum'" }}>
+                ${totalCapitalSaved.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
             </div>
+            <div style={{ background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.4)", borderRadius: 10, padding: 10, color: "#10b981" }}>
+              <DollarSign style={{ width: 20, height: 20 }} />
+            </div>
+          </div>
+
+          {/* KPI 2: Z3 Invariant Firewall */}
+          <div style={{
+            background: "linear-gradient(180deg, rgba(15, 23, 42, 0.75) 0%, rgba(11, 15, 23, 0.9) 100%)",
+            border: "1px solid rgba(129, 140, 248, 0.3)",
+            borderRadius: 14,
+            padding: "16px 20px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            boxShadow: "0 0 0 1px rgba(129, 140, 248, 0.1), 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 20px rgba(129, 140, 248, 0.12)",
+          }}>
             <div>
-              <span className="m-label">Channel3 BATNA</span>
-              <span className="m-val">$4,746.90</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Z3 Invariant Firewall</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#818cf8", background: "rgba(129, 140, 248, 0.15)", padding: "1px 6px", borderRadius: 10 }}>7 INVARIANTS</span>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#c7d2fe", marginTop: 4 }}>
+                Formal SAT Proof Gate
+              </div>
             </div>
+            <div style={{ background: "rgba(99, 102, 241, 0.15)", border: "1px solid rgba(99, 102, 241, 0.4)", borderRadius: 10, padding: 10, color: "#818cf8" }}>
+              <ShieldCheck style={{ width: 20, height: 20 }} />
+            </div>
+          </div>
+
+          {/* KPI 3: KERNEL Cloud Browser */}
+          <div style={{
+            background: "linear-gradient(180deg, rgba(15, 23, 42, 0.75) 0%, rgba(11, 15, 23, 0.9) 100%)",
+            border: "1px solid rgba(56, 189, 248, 0.3)",
+            borderRadius: 14,
+            padding: "16px 20px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            boxShadow: "0 0 0 1px rgba(56, 189, 248, 0.1), 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.12)",
+          }}>
             <div>
-              <span className="m-label">Compliant Target</span>
-              <span className="m-val highlight-val">$4,271.33</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>KERNEL Cloud Browser</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#38bdf8", background: "rgba(56, 189, 248, 0.15)", padding: "1px 6px", borderRadius: 10 }}>LIVE STREAM</span>
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 700, fontFamily: "monospace", color: "#7dd3fc", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 160 }}>
+                {lastKernelSession}
+              </div>
+            </div>
+            <div style={{ background: "rgba(56, 189, 248, 0.15)", border: "1px solid rgba(56, 189, 248, 0.4)", borderRadius: 10, padding: 10, color: "#38bdf8" }}>
+              <Globe style={{ width: 20, height: 20 }} />
             </div>
           </div>
-          <div style={{ marginTop: 12 }}>
-            <button
-              suppressHydrationWarning
-              className="button primary"
-              onClick={() => setShowInfraModal(true)}
-              style={{
-                width: "100%",
-                fontSize: 12,
-                fontWeight: 700,
-                padding: "8px 12px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                background: "linear-gradient(135deg, #0284c7 0%, #2563eb 100%)",
-                boxShadow: "0 0 16px rgba(56, 189, 248, 0.3)",
-                border: "1px solid rgba(56, 189, 248, 0.4)",
-              }}
-            >
-              <span>🏛️ 4 Sponsor Credit Pools & Architecture</span>
-            </button>
-          </div>
-        </div>
-      </header>
 
-      {/* 1-Click Judge Scenarios Bar */}
-      <JudgeScenarioBar
-        onRun={runScenario}
-        busy={busy}
-        activeScenario={activeScenario}
-      />
-
-      {/* 4-Pool Infrastructure KPI Bar */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, margin: "16px 0" }}>
-        <div style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 10, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Net Capital Saved</span>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#10b981", marginTop: 2 }}>
-              ${totalCapitalSaved.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {/* KPI 4: Elastic SHA-256 Chain */}
+          <div style={{
+            background: "linear-gradient(180deg, rgba(15, 23, 42, 0.75) 0%, rgba(11, 15, 23, 0.9) 100%)",
+            border: "1px solid rgba(245, 158, 11, 0.3)",
+            borderRadius: 14,
+            padding: "16px 20px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            boxShadow: "0 0 0 1px rgba(245, 158, 11, 0.1), 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.12)",
+          }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Elastic SHA-256 Chain</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#f59e0b", background: "rgba(245, 158, 11, 0.15)", padding: "1px 6px", borderRadius: 10 }}>ES|QL AUDIT</span>
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 700, fontFamily: "monospace", color: "#fcd34d", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 160 }}>
+                {lastElasticHash}...
+              </div>
+            </div>
+            <div style={{ background: "rgba(245, 158, 11, 0.15)", border: "1px solid rgba(245, 158, 11, 0.4)", borderRadius: 10, padding: 10, color: "#f59e0b" }}>
+              <Database style={{ width: 20, height: 20 }} />
             </div>
           </div>
-          <div style={{ background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: 8, padding: 8, color: "#10b981" }}>
-            <DollarSign style={{ width: 18, height: 18 }} />
-          </div>
         </div>
-
-        <div style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 10, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Z3 Invariant Firewall</span>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#818cf8", marginTop: 2 }}>
-              HMAC-SHA256 Gated
-            </div>
-          </div>
-          <div style={{ background: "rgba(99, 102, 241, 0.1)", border: "1px solid rgba(99, 102, 241, 0.3)", borderRadius: 8, padding: 8, color: "#818cf8" }}>
-            <ShieldCheck style={{ width: 18, height: 18 }} />
-          </div>
-        </div>
-
-        <div style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 10, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>KERNEL Cloud Browser</span>
-            <div style={{ fontSize: 13, fontWeight: 700, fontFamily: "monospace", color: "#38bdf8", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 150 }}>
-              {lastKernelSession}
-            </div>
-          </div>
-          <div style={{ background: "rgba(56, 189, 248, 0.1)", border: "1px solid rgba(56, 189, 248, 0.3)", borderRadius: 8, padding: 8, color: "#38bdf8" }}>
-            <Globe style={{ width: 18, height: 18 }} />
-          </div>
-        </div>
-
-        <div style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 10, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Elastic SHA-256 Chain</span>
-            <div style={{ fontSize: 13, fontWeight: 700, fontFamily: "monospace", color: "#f59e0b", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 150 }}>
-              {lastElasticHash}...
-            </div>
-          </div>
-          <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", borderRadius: 8, padding: 8, color: "#f59e0b" }}>
-            <Database style={{ width: 18, height: 18 }} />
-          </div>
-        </div>
-      </div>
 
       {/* Live Trading Floor / Decision Ledger */}
       <section className="results-panel">
@@ -339,5 +395,6 @@ export default function Home() {
         />
       )}
     </main>
-  );
+  </div>
+);
 }
