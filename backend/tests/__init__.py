@@ -1,1 +1,0 @@
-# PactPay Backend Test Suite

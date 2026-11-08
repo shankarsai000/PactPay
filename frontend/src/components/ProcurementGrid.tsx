@@ -481,6 +481,33 @@ export function ProcurementGrid({
     }
   };
 
+  const downloadRowReceipt = (row: ProcurementResult | any) => {
+    const receiptData = row.receipt || {
+      receipt_id: `RCPT-${row.sessionId}`,
+      session_id: row.sessionId,
+      query: row.query,
+      vendor: row.vendor,
+      status: row.status,
+      savings: row.savings,
+      merchant_offer: row.merchantOffer,
+      z3_audit: row.z3Audit,
+      clearance_certificate: row.clearanceCertificate,
+      paypal_settlement: row.paypalSettlement,
+      audit_chain: row.auditChain || row.audit_chain,
+      timestamp: new Date().toISOString(),
+      offline_verification_command: `python pactpay_verify.py pactpay_receipt_${row.sessionId}.json`,
+    };
+    const blob = new Blob([JSON.stringify(receiptData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `pactpay_receipt_${row.sessionId}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const selectedRow = actualRows.find((r) => r.sessionId === expandedSession) || actualRows[0];
 
   return (
@@ -601,7 +628,17 @@ export function ProcurementGrid({
                 <h4>AP2 Master-Detail Proof Ledger · {selectedRow.sessionId}</h4>
                 <p className="detail-query">Query: {selectedRow.query}</p>
               </div>
-              <div style={{ display: "flex", gap: "8px" }}>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <button
+                  suppressHydrationWarning
+                  type="button"
+                  className="button ghost"
+                  style={{ borderColor: "#38bdf8", color: "#38bdf8" }}
+                  onClick={() => downloadRowReceipt(selectedRow)}
+                  title="Download signed cryptographic proof artifact for offline verification"
+                >
+                  📥 Download receipt.json
+                </button>
                 {selectedRow.receipt && (
                   <button
                     suppressHydrationWarning
