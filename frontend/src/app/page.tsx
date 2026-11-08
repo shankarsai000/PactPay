@@ -161,6 +161,7 @@ export default function Home() {
       <TopNav
         onOpenInfra={() => setShowInfraModal(true)}
         onOpenCommand={() => setShowCommandMenu(true)}
+        onRunScenario={runScenario}
         apiBase={apiBase}
       />
 
