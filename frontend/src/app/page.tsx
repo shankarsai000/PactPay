@@ -3,6 +3,7 @@
 import "../lib/ag-grid-license";
 import { useEffect, useState } from "react";
 import { TopNav } from "../components/TopNav";
+import { CommandMenu } from "../components/CommandMenu";
 import { BreakItBox } from "../components/BreakItBox";
 import { JudgeScenarioBar, ScenarioKey } from "../components/JudgeScenarioBar";
 import { PayPalSettlementModal } from "../components/PayPalSettlementModal";
@@ -22,11 +23,32 @@ export default function Home() {
   const [settlement, setSettlement] = useState<NonNullable<ProcurementResult["paypalSettlement"]> | null>(null);
   const [viewingReceipt, setViewingReceipt] = useState<any | null>(null);
   const [showInfraModal, setShowInfraModal] = useState(false);
+  const [showCommandMenu, setShowCommandMenu] = useState(false);
   const [telemetryLogs, setTelemetryLogs] = useState<string[]>([
     "[System Init] Channel3 · KERNEL · Elastic ES|QL · Z3 SMT · PayPal Sandbox ready.",
   ]);
   const [lastKernelSession, setLastKernelSession] = useState<string>("kern_sim_live_2026");
   const [lastElasticHash, setLastElasticHash] = useState<string>("0000000000000000");
+
+  const jumpToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const topOffset = element.getBoundingClientRect().top + window.pageYOffset - 70;
+      window.scrollTo({ top: topOffset, behavior: "smooth" });
+    }
+  };
+
+  // Keyboard shortcut: Cmd+K / Ctrl+K opens Command Menu
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setShowCommandMenu((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const addLog = (msg: string) => {
     const timeStr = new Date().toLocaleTimeString("en-US", { hour12: false });
@@ -136,7 +158,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col selection:bg-sky-500/30 selection:text-sky-200">
-      <TopNav onOpenInfra={() => setShowInfraModal(true)} apiBase={apiBase} />
+      <TopNav
+        onOpenInfra={() => setShowInfraModal(true)}
+        onOpenCommand={() => setShowCommandMenu(true)}
+        apiBase={apiBase}
+      />
 
       <main className="page-shell flex-1">
         {/* Top Banner / Hero */}
@@ -202,11 +228,13 @@ export default function Home() {
         </header>
 
         {/* 1-Click Judge Scenarios Bar */}
-        <JudgeScenarioBar
-          onRun={runScenario}
-          busy={busy}
-          activeScenario={activeScenario}
-        />
+        <div id="scenarios">
+          <JudgeScenarioBar
+            onRun={runScenario}
+            busy={busy}
+            activeScenario={activeScenario}
+          />
+        </div>
 
         {/* 4-Pool Infrastructure KPI Bar - Fintech Noir Elevation */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14, margin: "16px 0" }}>
@@ -312,7 +340,7 @@ export default function Home() {
         </div>
 
       {/* Live Trading Floor / Decision Ledger */}
-      <section className="results-panel">
+      <section id="trading-floor" className="results-panel">
         <div className="panel-heading">
           <div>
             <span className="section-eyebrow">AG Grid Enterprise Trading Floor</span>
@@ -334,7 +362,7 @@ export default function Home() {
         />
 
         {/* Real-Time Telemetry Log Terminal */}
-        <div style={{ marginTop: 16, background: "var(--bg-primary)", border: "1px solid var(--border-color)", borderRadius: 8, padding: 12 }}>
+        <div id="telemetry-log" style={{ marginTop: 16, background: "var(--bg-primary)", border: "1px solid var(--border-color)", borderRadius: 8, padding: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)", paddingBottom: 6, marginBottom: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase" }}>
               <Terminal style={{ width: 13, height: 13, color: "#818cf8" }} />
@@ -368,9 +396,19 @@ export default function Home() {
       </section>
 
       {/* Live "Break-It" Interactive Red-Team Box */}
-      <BreakItBox apiBase={apiBase} />
+      <div id="break-it">
+        <BreakItBox apiBase={apiBase} />
+      </div>
 
       {/* Modals */}
+      <CommandMenu
+        isOpen={showCommandMenu}
+        onClose={() => setShowCommandMenu(false)}
+        onRunScenario={runScenario}
+        onOpenInfra={() => setShowInfraModal(true)}
+        onJumpToSection={jumpToSection}
+      />
+
       {settlement && (
         <PayPalSettlementModal
           settlement={settlement}
