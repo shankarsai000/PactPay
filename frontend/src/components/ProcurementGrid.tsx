@@ -425,6 +425,7 @@ export function ProcurementGrid({
         cellRenderer: (params: any) => {
           if (params.data?.isPinnedSummary) return null;
           const row = params.data as ProcurementResult;
+          const isExpanded = row.sessionId === params.context?.expandedSession;
           return (
             <div style={{ display: "flex", alignItems: "center", gap: "8px", height: "100%" }}>
               {row.paypalSettlement ? (
@@ -445,13 +446,28 @@ export function ProcurementGrid({
                 suppressHydrationWarning
                 type="button"
                 className="button inspect-btn"
-                style={{ padding: "6px 10px", fontSize: "12px" }}
+                style={{
+                  padding: "6px 12px",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  background: isExpanded ? "rgba(56, 189, 248, 0.22)" : "rgba(255, 255, 255, 0.05)",
+                  border: isExpanded ? "1px solid #38bdf8" : "1px solid rgba(255, 255, 255, 0.15)",
+                  color: isExpanded ? "#38bdf8" : "#cbd5e1",
+                  boxShadow: isExpanded ? "0 0 12px rgba(56, 189, 248, 0.35)" : "none",
+                  cursor: "pointer",
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setExpandedSession((prev) => (prev === row.sessionId ? null : row.sessionId));
+                  const willExpand = !isExpanded;
+                  setExpandedSession(willExpand ? row.sessionId : null);
+                  if (willExpand) {
+                    setTimeout(() => {
+                      document.getElementById("ap2-proof-drawer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 120);
+                  }
                 }}
               >
-                Inspect
+                {isExpanded ? "✕ Hide" : "🔍 Inspect"}
               </button>
             </div>
           );
@@ -521,7 +537,9 @@ export function ProcurementGrid({
     URL.revokeObjectURL(url);
   };
 
-  const selectedRow = actualRows.find((r) => r.sessionId === expandedSession) || actualRows[0];
+  const selectedRow = expandedSession
+    ? actualRows.find((r) => r.sessionId === expandedSession) || null
+    : null;
 
   return (
     <div className="results-wrap" style={{ padding: "16px", background: "var(--bg-secondary)" }}>
@@ -621,13 +639,20 @@ export function ProcurementGrid({
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           pinnedBottomRowData={pinnedBottomRowData}
+          context={{ expandedSession }}
           rowHeight={52}
           headerHeight={44}
           animateRows={false}
           getRowId={(params: any) => params.data?.sessionId || "row"}
           onRowClicked={(e: RowClickedEvent) => {
             if (!e.data?.isPinnedSummary && e.data?.sessionId) {
-              setExpandedSession((prev) => (prev === e.data.sessionId ? null : e.data.sessionId));
+              const willExpand = expandedSession !== e.data.sessionId;
+              setExpandedSession(willExpand ? e.data.sessionId : null);
+              if (willExpand) {
+                setTimeout(() => {
+                  document.getElementById("ap2-proof-drawer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 120);
+              }
             }
           }}
         />
@@ -635,14 +660,19 @@ export function ProcurementGrid({
 
       {/* 3. Master-Detail Drawer for Selected Row */}
       {selectedRow && (
-        <div style={{ marginTop: "20px" }}>
-          <div className="drawer-container">
+        <div id="ap2-proof-drawer" style={{ marginTop: "20px" }}>
+          <div className="drawer-container" style={{ border: "1px solid rgba(56, 189, 248, 0.4)", boxShadow: "0 0 30px rgba(56, 189, 248, 0.15)" }}>
             <div className="drawer-header">
               <div>
-                <h4>AP2 Master-Detail Proof Ledger · {selectedRow.sessionId}</h4>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 800, color: "#38bdf8", background: "rgba(56, 189, 248, 0.15)", padding: "2px 8px", borderRadius: "10px", border: "1px solid rgba(56, 189, 248, 0.3)" }}>
+                    ACTIVE PROOF INSPECTION
+                  </span>
+                  <h4>AP2 Master-Detail Proof Ledger · {selectedRow.sessionId}</h4>
+                </div>
                 <p className="detail-query">Query: {selectedRow.query}</p>
               </div>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                 <button
                   suppressHydrationWarning
                   type="button"
@@ -677,6 +707,16 @@ export function ProcurementGrid({
                     💳 Settle via PayPal
                   </button>
                 )}
+                <button
+                  suppressHydrationWarning
+                  type="button"
+                  className="button ghost"
+                  style={{ padding: "6px 12px", fontSize: "12px", color: "#94a3b8" }}
+                  onClick={() => setExpandedSession(null)}
+                  title="Close this proof drawer"
+                >
+                  ✕ Close Drawer
+                </button>
               </div>
             </div>
 
@@ -947,7 +987,11 @@ export function ProcurementGrid({
                       {(selectedRow.browserLiveViewUrl || (selectedRow as any).browser_live_view_url) && (
                         <div style={{ marginTop: "6px" }}>
                           <a
-                            href={selectedRow.browserLiveViewUrl || (selectedRow as any).browser_live_view_url}
+                            href={
+                              (selectedRow.browserLiveViewUrl || (selectedRow as any).browser_live_view_url || "").includes("kernel.sh")
+                                ? "https://onkernel.com"
+                                : (selectedRow.browserLiveViewUrl || (selectedRow as any).browser_live_view_url)
+                            }
                             target="_blank"
                             rel="noreferrer"
                             style={{ color: "#38bdf8", textDecoration: "underline" }}
@@ -980,6 +1024,31 @@ export function ProcurementGrid({
               </section>
             </div>
           </div>
+        </div>
+      )}
+
+      {!selectedRow && actualRows.length > 0 && (
+        <div style={{ marginTop: "14px", padding: "14px 18px", background: "rgba(255, 255, 255, 0.02)", border: "1px dashed var(--border-color)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--text-secondary)" }}>
+            <span>💡</span>
+            <span>Click <strong style={{ color: "#38bdf8" }}>🔍 Inspect</strong> on any transaction row above to open the full AP2 Master-Detail proof ledger, Z3 mathematical trace, and dispute auditor.</span>
+          </div>
+          <button
+            suppressHydrationWarning
+            type="button"
+            className="button ghost"
+            style={{ fontSize: "11px", padding: "4px 10px", borderColor: "var(--border-color)" }}
+            onClick={() => {
+              if (actualRows[0]?.sessionId) {
+                setExpandedSession(actualRows[0].sessionId);
+                setTimeout(() => {
+                  document.getElementById("ap2-proof-drawer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 100);
+              }
+            }}
+          >
+            Inspect Latest Deal ↘
+          </button>
         </div>
       )}
     </div>
