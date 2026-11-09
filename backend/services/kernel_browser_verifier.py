@@ -149,7 +149,7 @@ class KernelBrowserVerifier:
 
         # Zero-latency deterministic fallback for local testing & judging environments
         session_id = f"kern_sim_{secrets.token_hex(4)}"
-        fallback_live_view = f"https://browser.kernel.sh/live/{session_id}?view_only=true&token={secrets.token_hex(8)}"
+        fallback_live_view = "https://onkernel.com"
         session_data = {
             "kernel_active": False,
             "session_id": session_id,

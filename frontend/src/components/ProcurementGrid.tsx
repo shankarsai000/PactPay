@@ -284,6 +284,7 @@ export function ProcurementGrid({
         query: "Aggregate Corporate AP2 Spend Portfolio",
         channel3BatnaTotal: totalBatna,
         computedTotal: totalSpend,
+        priceHistory: [],
         netSavings: totalSavings,
         savingsPct: totalBatna > 0 ? (totalSavings / totalBatna) * 100 : 10.02,
         z3Status: "sat" as const,
@@ -308,6 +309,7 @@ export function ProcurementGrid({
   const columnDefs = useMemo<ColDef[]>(
     () => [
       {
+        colId: "sessionId",
         field: "sessionId",
         headerName: "Session / Vendor",
         width: 220,
@@ -331,6 +333,7 @@ export function ProcurementGrid({
         },
       },
       {
+        colId: "channel3BatnaTotal",
         field: "channel3BatnaTotal",
         headerName: "Channel3 BATNA",
         width: 150,
@@ -338,6 +341,7 @@ export function ProcurementGrid({
         cellStyle: { fontFamily: "monospace", fontWeight: 600 },
       },
       {
+        colId: "computedTotal",
         field: "computedTotal",
         headerName: "Negotiated Spend",
         width: 160,
@@ -345,12 +349,14 @@ export function ProcurementGrid({
         cellStyle: { fontFamily: "monospace", fontWeight: 700 },
       },
       {
+        colId: "priceHistory",
         field: "priceHistory",
         headerName: "Round Price Curve",
         width: 170,
         cellRenderer: SparklineRenderer,
       },
       {
+        colId: "netSavings",
         field: "netSavings",
         headerName: "Net Savings",
         width: 160,
@@ -367,6 +373,7 @@ export function ProcurementGrid({
         },
       },
       {
+        colId: "z3Status",
         field: "z3Status",
         headerName: "Formal SMT Gate",
         width: 160,
@@ -384,6 +391,7 @@ export function ProcurementGrid({
         },
       },
       {
+        colId: "outcome",
         field: "outcome",
         headerName: "Procurement Outcome",
         width: 190,
@@ -407,18 +415,22 @@ export function ProcurementGrid({
         },
       },
       {
+        colId: "actions",
+        field: "sessionId",
         headerName: "Actions",
         width: 200,
         pinned: "right",
+        sortable: false,
+        filter: false,
         cellRenderer: (params: any) => {
           if (params.data?.isPinnedSummary) return null;
           const row = params.data as ProcurementResult;
-          const isExpanded = row.sessionId === expandedSession;
           return (
             <div style={{ display: "flex", alignItems: "center", gap: "8px", height: "100%" }}>
               {row.paypalSettlement ? (
                 <button
                   suppressHydrationWarning
+                  type="button"
                   className="button settle-btn"
                   style={{ padding: "6px 12px", fontSize: "12px" }}
                   onClick={(e) => {
@@ -431,21 +443,22 @@ export function ProcurementGrid({
               ) : null}
               <button
                 suppressHydrationWarning
+                type="button"
                 className="button inspect-btn"
                 style={{ padding: "6px 10px", fontSize: "12px" }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setExpandedSession(isExpanded ? null : row.sessionId);
+                  setExpandedSession((prev) => (prev === row.sessionId ? null : row.sessionId));
                 }}
               >
-                {isExpanded ? "Hide" : "Inspect"}
+                Inspect
               </button>
             </div>
           );
         },
       },
     ],
-    [expandedSession, handleOpenSettlement]
+    [handleOpenSettlement]
   );
 
   const defaultColDef = useMemo<ColDef>(
@@ -610,10 +623,11 @@ export function ProcurementGrid({
           pinnedBottomRowData={pinnedBottomRowData}
           rowHeight={52}
           headerHeight={44}
-          animateRows={true}
+          animateRows={false}
+          getRowId={(params: any) => params.data?.sessionId || "row"}
           onRowClicked={(e: RowClickedEvent) => {
-            if (!e.data?.isPinnedSummary) {
-              setExpandedSession(expandedSession === e.data.sessionId ? null : e.data.sessionId);
+            if (!e.data?.isPinnedSummary && e.data?.sessionId) {
+              setExpandedSession((prev) => (prev === e.data.sessionId ? null : e.data.sessionId));
             }
           }}
         />

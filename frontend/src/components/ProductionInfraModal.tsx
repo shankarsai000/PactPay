@@ -24,7 +24,9 @@ export function ProductionInfraModal({
   // Kernel Browser State
   const [kernelSession, setKernelSession] = useState<any | null>(null);
   const [liveBrowserUrl, setLiveBrowserUrl] = useState<string>(
-    initialLiveBrowserUrl || "https://browser.kernel.sh/live/demo_pactpay_paypal_audit"
+    initialLiveBrowserUrl && !initialLiveBrowserUrl.includes("kernel.sh")
+      ? initialLiveBrowserUrl
+      : "https://onkernel.com"
   );
   const [legacyScrapeData, setLegacyScrapeData] = useState<any | null>(null);
 

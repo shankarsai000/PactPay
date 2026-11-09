@@ -132,7 +132,7 @@ export function PayPalSettlementModal({ settlement, apiBase = API_BASE_URL, onCl
               {settlement.browser_live_view_url && (
                 <a
                   className="button ghost"
-                  href={settlement.browser_live_view_url}
+                  href={settlement.browser_live_view_url.includes("kernel.sh") ? "https://onkernel.com" : settlement.browser_live_view_url}
                   target="_blank"
                   rel="noreferrer"
                   style={{ borderColor: "#a855f7", color: "#c084fc" }}
