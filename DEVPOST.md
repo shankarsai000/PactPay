@@ -317,5 +317,21 @@ npx @modelcontextprotocol/inspector python backend/mcp_server.py
 
 ---
 
+## ⚠️ Real-World Limitations & Production Roadmap
+
+PactPay was engineered with architectural honesty: **Large Language Models should negotiate, but only formal mathematical solvers should authorize money.** To maintain transparency with enterprise auditors and hackathon evaluators, we explicitly document the real-world operational boundaries of this architecture and our engineering mitigations:
+
+| # | Operational Boundary / Limitation | Where It Strains in Production | Production Roadmap & Engineering Mitigation |
+| :- | :--- | :--- | :--- |
+| **1** | **Legal Prose-to-Logic Modeling Gap** | SMT solvers verify structured mathematical invariants (budget, freight ratios, warranty floors, trust scores), but cannot parse ambiguous or subjective Master Service Agreement (MSA) prose (e.g., indemnity clauses, IP warranties). | Develop a Domain-Specific Language (DSL) compiler that translates standardized legal clauses (e.g., CommonAccord / Open-Law schemas) into formal first-order logic equations before solver execution. |
+| **2** | **Retail Catalog Dependency for Ground-Truth BATNAs** | Channel3 delivers real-time unbundled market pricing for standardized commodity hardware (displays, accessories, laptops). Bespoke B2B items (custom ASIC fabrication, specialized tooling, proprietary enterprise SaaS) lack public e-commerce pricing. | Fall back to historical enterprise ERP procurement data (SAP Ariba / Coupa ingestion) and multi-supplier RFP swarm baselines when Channel3 catalog coverage is unavailable. |
+| **3** | **Sybil Resistance & Auction Collusion** | If an adversarial merchant operates multiple shell bidding agents, they can stage a pseudo-auction to artificially peg prices just under the BATNA ceiling. | Enforce verifiable cryptographic vendor identity using corporate D-U-N-S numbers, Verified PayPal Business Merchant IDs, and Elastic historical fulfillment credentials. |
+| **4** | **Headless M2M vs. Interactive Buyer Approval** | Purchases above the $2,000 auto-order limit require an interactive buyer approval redirect (`PayPalSettlementModal.tsx`), interrupting fully autonomous "lights-out" machine-to-machine workflows. | Transition high-ticket autonomous flows to **PayPal Vault** pre-approved authorization agreements and Google AP2 machine-delegated cryptographic spend tokens. |
+| **5** | **Combinatorial Complexity at Scale (NP-Completeness)** | PactPay's 7 linear invariants solve in ~11.9ms. Scaling to non-linear multi-facility logistics optimization or multi-warehouse bin-packing is NP-complete. | Implement a strict 500ms Z3 solver timeout circuit breaker with deterministic heuristic relaxation and simplex solver fallbacks. |
+| **6** | **Physical Fulfillment "Oracle" Problem** | PactPay guarantees mathematical and policy compliance *at the payment gate*. It cannot verify physical atoms upon arrival (e.g., counterfeit goods or empty boxes). | Integrate post-settlement smart escrow milestone releases linked to carrier delivery webhooks (FedEx/UPS REST API) and warehouse RFID / dock inspection signatures. |
+| **7** | **Cross-Border FX Timing & Volatility** | Landed prices are computed in integer cents. Currency micro-pip fluctuations between BATNA lock and PayPal order capture can trigger fractional-cent budget cap rejections. | Introduce configurable FX tolerance slippage bands (e.g., $\pm 0.15\%$) for cross-border currency pairs locked at the time of quotation. |
+
+---
+
 ## 👥 The Team
 Built with passion for the **PayPal AI Hackathon 2026** by the PactPay Team.
