@@ -1,0 +1,33 @@
+{
+  "session_id": "PROC-92B799",
+  "timestamp": 1794236575,
+  "merchant": "Apex Enterprise Supply",
+  "clearance_certificate": {
+    "certificate_payload": {
+      "deal_id": "PROC-92B799",
+      "deal_hash": "8daed5edb29b4d5b15caefa1189cd3cd04d87f5ea5b19353941f08136f4aff08",
+      "mandate_hash": "1471367cb07b354e1a9c5acc1ab1e780cf0fcea245edbb89b4d69369da7b9ee5",
+      "channel3_snapshot_hash": "6f6fd8d824721a061c252988fb8d3fd57b8f1bec66917e7734bbcb0cd582a88f",
+      "economics": {
+        "unit_monitor_cents": 39685,
+        "unit_cable_cents": 2562,
+        "freight_cents": 11000,
+        "vendor_trust_score": 94
+      },
+      "vendor_trust_score": 94,
+      "nonce": "7f8c9b2e-d014-4a27-9c88-eb28537a6b10",
+      "issued_at": 1794236574,
+      "expires_at": 1794237474
+    },
+    "signature": "9f1b43c0a1058724822e5c5e486ec2d18a29a5e6a254ce1ba59b54bfee1cec98961fae48188b02621c1843bb18681d943dc58275a39a25038dc18205cf7d1a02",
+    "signer_public_key": "5d46683def8cf075fc21abdc556b210c363050dcc9f82392c3319392c2ee4642"
+  },
+  "paypal_settlement": {
+    "order_id": "9XY87654321098765",
+    "invoice_id": "INV-2026-0891",
+    "amount": 4271.33,
+    "currency": "USD",
+    "mode": "AUTOMATED_HEADLESS_PAYPAL_API",
+    "tracking_number": "794644722883"
+  }
+}
