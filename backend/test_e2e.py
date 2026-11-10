@@ -161,24 +161,25 @@ def test_pactpay_end_to_end():
     import mcp_server
     assert hasattr(mcp_server, "pactpay_discover_channel3_batna")
     assert hasattr(mcp_server, "pactpay_verify_deal_z3")
-    assert hasattr(mcp_server, "pactpay_execute_swarm_procurement")
-    assert hasattr(mcp_server, "pactpay_audit_paypal_dispute")
+    assert hasattr(mcp_server, "pactpay_execute_guarded_procurement")
+    assert hasattr(mcp_server, "pactpay_capture_paypal_order")
 
     # 12A. Test MCP Channel3 BATNA Discovery Tool
-    mcp_batna = asyncio.run(mcp_server.pactpay_discover_channel3_batna(query="10x Workstations", quantity=10))
-    assert mcp_batna["economics"]["landed_batna_dollars"] == 4746.90
-    assert "snapshot_hash" in mcp_batna
+    mcp_batna = asyncio.run(mcp_server.pactpay_discover_channel3_batna(query="10x Workstations", requested_qty=10))
+    assert mcp_batna["channel3_batna_total_usd"] == 4746.90
+    assert "kernel_browser_verification" in mcp_batna
 
     # 12B. Test MCP Z3 Symbolic Verification Tool
     mcp_z3 = mcp_server.pactpay_verify_deal_z3(
         envelope_json='{"merchant_id": "APEX_01", "cart_payload": {"subtotal_cents": 422470, "freight_cents": 11000, "rebate_cents": 6337, "warranty_months": 36, "vendor_trust_score": 94}}',
         max_budget=4600.0,
-        min_vendor_trust=75,
+        min_vendor_trust_score=75,
     )
-    assert mcp_z3["verified"] is True
-    assert mcp_z3["z3_status"] == "sat"
-    assert "clearance_token" in mcp_z3
-    log(f"[PASS] Model Context Protocol (MCP) Tools OK - BATNA: ${mcp_batna['economics']['landed_batna_dollars']:.2f}, Z3 Status: {mcp_z3['z3_status'].upper()}, Token: {mcp_z3['clearance_token'][:18]}...")
+    z3_eval = mcp_z3["z3_evaluation"]
+    assert z3_eval["verified"] is True
+    assert z3_eval["status"] == "sat"
+    assert "clearance_token" in z3_eval
+    log(f"[PASS] Model Context Protocol (MCP) Tools OK - BATNA: ${mcp_batna['channel3_batna_total_usd']:.2f}, Z3 Status: {z3_eval['status'].upper()}, Token: {z3_eval['clearance_token'][:18]}...")
 
     log("=" * 72)
     log("  ALL END-TO-END TESTS PASSED WITH 100% SUCCESS!")
